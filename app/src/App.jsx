@@ -70,16 +70,27 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
   )
 }
 
-// UI transitoire (Phase 5) — le reste de l'écran (Session/Buzz/Révélation) arrive Phases 6-9.
+// UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
 export function GameScreen({ queue, spotifyPlayer }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
-  const { deviceId, togglePlay, pause, activateElement, onPlaybackStateChanged } = spotifyPlayer
+  const {
+    deviceId,
+    togglePlay,
+    pause,
+    resume,
+    getVolume,
+    setVolume,
+    activateElement,
+    onPlaybackStateChanged,
+  } = spotifyPlayer
 
   const [duration, setDuration] = useState(() => getStoredTimerDuration())
   const timer = useTimer(duration)
-  const [isRoundActive, setIsRoundActive] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
+  // idle -> playing -> paused (manuel ou fin de timer) -> revealed -> (Nouvelle musique) -> playing...
+  const [roundStage, setRoundStage] = useState('idle')
+  const [activeTrack, setActiveTrack] = useState(null)
+  const [preloadedTrack, setPreloadedTrack] = useState(null)
   const [playbackError, setPlaybackError] = useState(null)
 
   function changeDuration(delta) {
@@ -97,13 +108,19 @@ export function GameScreen({ queue, spotifyPlayer }) {
     activateElement()
     setPlaybackError(null)
     const trackToPlay = currentTrack
+    const usePreloaded = preloadedTrack?.uri === trackToPlay.uri
 
     try {
-      const token = await getValidAccessToken()
-      await playTrack(token, deviceId, trackToPlay.uri)
+      if (usePreloaded) {
+        await resume()
+      } else {
+        const token = await getValidAccessToken()
+        await playTrack(token, deviceId, trackToPlay.uri)
+      }
+      setPreloadedTrack(null)
+      setActiveTrack(trackToPlay)
       advance()
-      setIsRoundActive(true)
-      setIsPaused(false)
+      setRoundStage('playing')
 
       const unsubscribe = onPlaybackStateChanged((state) => {
         if (state?.paused === false && state?.track_window?.current_track?.uri === trackToPlay.uri) {
@@ -111,7 +128,7 @@ export function GameScreen({ queue, spotifyPlayer }) {
           setTimeout(() => {
             timer.start(() => {
               pause()
-              setIsPaused(true)
+              setRoundStage('paused')
             })
           }, 1000)
         }
@@ -124,19 +141,66 @@ export function GameScreen({ queue, spotifyPlayer }) {
 
   function handleTogglePause() {
     togglePlay()
-    setIsPaused((wasPaused) => {
-      if (wasPaused) {
+    setRoundStage((current) => {
+      if (current === 'paused') {
         // Le timer est peut-être déjà arrivé à 0 (fin naturelle) : dans ce cas on ne fait que
         // reprendre la lecture, sans relancer un compte à rebours déjà terminé (sinon onComplete
         // se redéclenche immédiatement au tick suivant).
-        if (timer.secondsLeft > 0) {
-          timer.resume()
-        }
-      } else {
-        timer.stop()
+        if (timer.secondsLeft > 0) timer.resume()
+        return 'playing'
       }
-      return !wasPaused
+      if (current === 'playing') {
+        timer.stop()
+        return 'paused'
+      }
+      return current
     })
+  }
+
+  function handleReveal() {
+    timer.stop()
+    pause()
+    setRoundStage('revealed')
+
+    // currentTrack a déjà avancé au clic précédent sur "Nouvelle musique" : c'est bien le
+    // prochain morceau à jouer qu'on précharge pendant que l'animateur commente la réponse.
+    if (currentTrack) {
+      preloadNext(currentTrack)
+    }
+  }
+
+  async function preloadNext(nextTrack) {
+    if (!deviceId) return
+    let previousVolume = null
+    try {
+      previousVolume = await getVolume()
+      await setVolume(0)
+
+      const token = await getValidAccessToken()
+      await playTrack(token, deviceId, nextTrack.uri)
+
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => reject(new Error('preload_timeout')), 8000)
+        const unsubscribe = onPlaybackStateChanged((state) => {
+          if (state?.paused === false && state?.track_window?.current_track?.uri === nextTrack.uri) {
+            clearTimeout(timeoutId)
+            unsubscribe()
+            resolve()
+          }
+        })
+      })
+
+      await pause()
+      setPreloadedTrack({ uri: nextTrack.uri })
+    } catch (err) {
+      // Dégradation gracieuse : pas grave, "Nouvelle musique" retentera un PUT /play classique.
+      console.error('[GameScreen] preloadNextTrack failed', err)
+      setPreloadedTrack(null)
+    } finally {
+      if (previousVolume !== null) {
+        await setVolume(previousVolume)
+      }
+    }
   }
 
   if (tracks.length === 0) {
@@ -156,7 +220,10 @@ export function GameScreen({ queue, spotifyPlayer }) {
     )
   }
 
-  if (isFinished) {
+  // La queue est épuisée dès le lancement du tout dernier morceau (currentIndex avance à ce
+  // moment-là, pas à la fin de la manche) : si on est encore en train de le jouer/réviser, on
+  // continue d'afficher la scène normale plutôt que d'écraser le timer/la révélation en cours.
+  if (isFinished && roundStage === 'idle') {
     return (
       <div className="cbt-auth-gate">
         <p>Tous les morceaux ont été joués.</p>
@@ -172,28 +239,48 @@ export function GameScreen({ queue, spotifyPlayer }) {
     )
   }
 
+  const isRevealed = roundStage === 'revealed'
+
   return (
     <div className="cbt-stage">
-      <TrackInfo isActive={isRoundActive && !isPaused} />
-      <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />
+      <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />
 
-      <div className="cbt-stage__duration">
-        <button type="button" onClick={() => changeDuration(-5)} disabled={timer.isRunning}>
-          −
-        </button>
-        <span>Durée : {duration} s</span>
-        <button type="button" onClick={() => changeDuration(5)} disabled={timer.isRunning}>
-          +
-        </button>
-      </div>
+      {!isRevealed && (
+        <>
+          <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />
+          <div className="cbt-stage__duration">
+            <button type="button" onClick={() => changeDuration(-5)} disabled={timer.isRunning}>
+              −
+            </button>
+            <span>Durée : {duration} s</span>
+            <button type="button" onClick={() => changeDuration(5)} disabled={timer.isRunning}>
+              +
+            </button>
+          </div>
+        </>
+      )}
 
-      <PlayerControls
-        onPlayNext={handlePlayNext}
-        onTogglePause={handleTogglePause}
-        canPlayNext={!timer.isRunning}
-        isRoundActive={isRoundActive}
-        isPaused={isPaused}
-      />
+      {isFinished && isRevealed ? (
+        <div className="cbt-auth-gate">
+          <p>Tous les morceaux ont été joués.</p>
+          <button
+            type="button"
+            className="cbt-btn cbt-btn--primary"
+            onClick={loadQueue}
+            disabled={queueStatus === 'loading'}
+          >
+            {queueStatus === 'loading' ? 'Chargement…' : 'Recharger les playlists'}
+          </button>
+        </div>
+      ) : (
+        <PlayerControls
+          onPlayNext={handlePlayNext}
+          onTogglePause={handleTogglePause}
+          onReveal={handleReveal}
+          canPlayNext={!timer.isRunning && !isFinished}
+          roundStage={roundStage}
+        />
+      )}
       {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}
     </div>
   )

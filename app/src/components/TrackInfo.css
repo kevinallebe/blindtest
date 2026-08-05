@@ -94,3 +94,43 @@
   font-weight: 600;
   color: var(--color-text-muted);
 }
+
+.cbt-track-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.cbt-track-cover__ring--revealed {
+  background: conic-gradient(from 0deg, var(--color-accent-gold), var(--color-accent-orange), var(--color-accent-gold));
+  opacity: 0.95;
+  box-shadow: 0 0 60px oklch(0.75 0.15 85 / 0.5);
+}
+
+.cbt-track-cover__inner--revealed {
+  background: oklch(0.2 0.03 240);
+  backdrop-filter: none;
+}
+
+.cbt-track-cover__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cbt-track-reveal__title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 1.1;
+  text-align: center;
+  max-width: 640px;
+}
+
+.cbt-track-reveal__album {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-accent-orange-2);
+  margin-top: -8px;
+}
