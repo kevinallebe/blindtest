@@ -74,7 +74,7 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
 export function GameScreen({ queue, spotifyPlayer }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
-  const { deviceId, togglePlay, pause, onPlaybackStateChanged } = spotifyPlayer
+  const { deviceId, togglePlay, pause, activateElement, onPlaybackStateChanged } = spotifyPlayer
 
   const [duration, setDuration] = useState(() => getStoredTimerDuration())
   const timer = useTimer(duration)
@@ -92,6 +92,9 @@ export function GameScreen({ queue, spotifyPlayer }) {
 
   async function handlePlayNext() {
     if (!currentTrack || !deviceId) return
+    // Doit rester synchrone, avant tout `await`, pour compter comme le geste utilisateur qui
+    // débloque l'audio du SDK (voir le commentaire sur activateElement dans useSpotifyPlayer.js).
+    activateElement()
     setPlaybackError(null)
     const trackToPlay = currentTrack
 

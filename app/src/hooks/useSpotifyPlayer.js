@@ -82,6 +82,12 @@ export function useSpotifyPlayer() {
   const pause = useCallback(() => playerRef.current?.pause(), [])
   const resume = useCallback(() => playerRef.current?.resume(), [])
 
+  // À appeler de façon synchrone dans un gestionnaire de clic, avant tout `await`. Sans ça, après
+  // un chargement/refresh de page, le navigateur bloque l'audio du SDK (Spotify Connect indique
+  // "en lecture" côté serveur, mais rien ne sort tant que l'élément n'a pas été activé par un
+  // vrai geste utilisateur synchrone).
+  const activateElement = useCallback(() => playerRef.current?.activateElement?.(), [])
+
   // Retourne une fonction de désinscription, à appeler une fois la confirmation reçue (US-7.2).
   const onPlaybackStateChanged = useCallback((callback) => {
     const player = playerRef.current
@@ -137,5 +143,5 @@ export function useSpotifyPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { status, error, deviceId, connect, togglePlay, pause, resume, onPlaybackStateChanged }
+  return { status, error, deviceId, connect, togglePlay, pause, resume, activateElement, onPlaybackStateChanged }
 }

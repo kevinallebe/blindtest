@@ -27,6 +27,7 @@ function buildSpotifyPlayer(onStateChangeHolder) {
     togglePlay: vi.fn(),
     pause: vi.fn(),
     resume: vi.fn(),
+    activateElement: vi.fn(),
     onPlaybackStateChanged: (callback) => {
       onStateChangeHolder.current = callback
       return vi.fn()
@@ -66,6 +67,7 @@ describe('GameScreen — playback/timer orchestration', () => {
       await flushMicrotasks()
     })
     expect(queue.advance).toHaveBeenCalledTimes(1)
+    expect(spotifyPlayer.activateElement).toHaveBeenCalledTimes(1)
 
     // Confirme la lecture réelle (player_state_changed) -> déclenche le délai 1s puis le timer
     act(() => onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: 'spotify:track:a' } } }))
