@@ -8,7 +8,8 @@ import {
 } from '../../services/adminConfig.js'
 import './AdminTab.css'
 
-export default function AdminTab() {
+export default function AdminTab({ queue = {} }) {
+  const { stats = null, status: queueStatus = 'idle', error: queueError = null, loadQueue = () => {} } = queue
   const [clientId, setClientId] = useState(() => getSpotifyClientId())
   const [savedClientId, setSavedClientId] = useState(false)
 
@@ -95,11 +96,28 @@ export default function AdminTab() {
       </section>
 
       <div className="cbt-admin-tab__footer">
-        <div className="cbt-admin-tab__stat">
-          <div className="cbt-admin-tab__stat-value">{playlists.length}</div>
-          <div className="cbt-admin-tab__stat-label">Playlists</div>
-        </div>
+        <Stat value={playlists.length} label="Playlists" />
+        {stats && <Stat value={stats.tracksLoaded} label="Morceaux chargés" />}
+        {stats && <Stat value={stats.duplicatesRemoved} label="Doublons retirés" />}
+        <button
+          type="button"
+          className="cbt-admin-tab__btn-reload"
+          onClick={loadQueue}
+          disabled={queueStatus === 'loading'}
+        >
+          {queueStatus === 'loading' ? 'Chargement…' : 'Recharger les playlists'}
+        </button>
       </div>
+      {queueStatus === 'error' && queueError && <p className="cbt-admin-tab__error">{queueError}</p>}
+    </div>
+  )
+}
+
+function Stat({ value, label }) {
+  return (
+    <div className="cbt-admin-tab__stat">
+      <div className="cbt-admin-tab__stat-value">{value}</div>
+      <div className="cbt-admin-tab__stat-label">{label}</div>
     </div>
   )
 }

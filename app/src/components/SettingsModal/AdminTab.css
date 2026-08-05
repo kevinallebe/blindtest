@@ -136,10 +136,34 @@
 
 .cbt-admin-tab__footer {
   display: flex;
+  align-items: center;
   gap: 28px;
   margin-top: 4px;
   padding-top: 22px;
   border-top: 1px solid oklch(0.32 0.03 240);
+}
+
+.cbt-admin-tab__btn-reload {
+  margin-left: auto;
+  border: 2px solid oklch(0.4 0.02 240);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cbt-admin-tab__btn-reload:hover:not(:disabled) {
+  background: oklch(0.3 0.02 240);
+}
+
+.cbt-admin-tab__btn-reload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cbt-admin-tab__stat-value {
