@@ -1,20 +1,24 @@
+import { useState } from 'react'
 import Header from './components/Header.jsx'
+import QRCodeInvite from './components/QRCodeInvite.jsx'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
 
 function App() {
   const { status, error, connect } = useSpotifyPlayer()
+  const [showInvite, setShowInvite] = useState(false)
 
   return (
     <>
       <Header
         spotifyConnected={status === 'ready'}
         buzzerConnected={false}
-        onInvite={() => {}}
+        onInvite={() => setShowInvite(true)}
         onSettings={() => {}}
       />
       <main className="cbt-placeholder">
         <SpotifyAuthGate status={status} error={error} onConnect={connect} />
       </main>
+      {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
     </>
   )
 }
