@@ -80,9 +80,6 @@ export function useSpotifyPlayer() {
 
   const togglePlay = useCallback(() => playerRef.current?.togglePlay(), [])
   const pause = useCallback(() => playerRef.current?.pause(), [])
-  const resume = useCallback(() => playerRef.current?.resume(), [])
-  const getVolume = useCallback(() => playerRef.current?.getVolume(), [])
-  const setVolume = useCallback((volume) => playerRef.current?.setVolume(volume), [])
 
   // À appeler de façon synchrone dans un gestionnaire de clic, avant tout `await`. Sans ça, après
   // un chargement/refresh de page, le navigateur bloque l'audio du SDK (Spotify Connect indique
@@ -152,9 +149,6 @@ export function useSpotifyPlayer() {
     connect,
     togglePlay,
     pause,
-    resume,
-    getVolume,
-    setVolume,
     activateElement,
     onPlaybackStateChanged,
   }

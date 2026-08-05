@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
@@ -74,33 +74,33 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
 export function GameScreen({ queue, spotifyPlayer }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
-  const {
-    deviceId,
-    togglePlay,
-    pause,
-    resume,
-    getVolume,
-    setVolume,
-    activateElement,
-    onPlaybackStateChanged,
-  } = spotifyPlayer
+  const { deviceId, togglePlay, pause, activateElement, onPlaybackStateChanged } = spotifyPlayer
 
   const [duration, setDuration] = useState(() => getStoredTimerDuration())
   const timer = useTimer(duration)
   // idle -> playing -> paused (manuel ou fin de timer) -> revealed -> (Nouvelle musique) -> playing...
   const [roundStage, setRoundStage] = useState('idle')
   const [activeTrack, setActiveTrack] = useState(null)
-  const [preloadedTrack, setPreloadedTrack] = useState(null)
   const [playbackError, setPlaybackError] = useState(null)
-  // Suivi du préchargement en cours (hors état React, pour être lu de façon synchrone/fiable :
-  // preloadedTrack via une closure figée ne reflèterait pas encore le résultat pendant l'attente).
-  const inFlightPreloadRef = useRef({ uri: null, promise: null })
 
   function changeDuration(delta) {
     setDuration((current) => {
       const next = clampTimerDuration(current + delta)
       setStoredTimerDuration(next)
       return next
+    })
+  }
+
+  function waitForPlaybackState(predicate, { timeoutMs = 8000 } = {}) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error('playback_state_timeout')), timeoutMs)
+      const unsubscribe = onPlaybackStateChanged((state) => {
+        if (predicate(state)) {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          resolve(state)
+        }
+      })
     })
   }
 
@@ -111,26 +111,10 @@ export function GameScreen({ queue, spotifyPlayer }) {
     activateElement()
     setPlaybackError(null)
     const trackToPlay = currentTrack
-    let usePreloaded = preloadedTrack?.uri === trackToPlay.uri
-
-    // Un préchargement pour CE morceau est peut-être encore en train de se terminer (mise en
-    // pause + restauration du volume) : on attend son issue réelle avant d'agir, plutôt que de
-    // risquer une course où les deux séquences se marchent dessus (son coupé après coup, timer
-    // démarré sans lecture réelle...).
-    if (inFlightPreloadRef.current.uri === trackToPlay.uri && inFlightPreloadRef.current.promise) {
-      const resolvedUri = await inFlightPreloadRef.current.promise
-      usePreloaded = resolvedUri === trackToPlay.uri
-    }
-    inFlightPreloadRef.current = { uri: null, promise: null }
 
     try {
-      if (usePreloaded) {
-        await resume()
-      } else {
-        const token = await getValidAccessToken()
-        await playTrack(token, deviceId, trackToPlay.uri)
-      }
-      setPreloadedTrack(null)
+      const token = await getValidAccessToken()
+      await playTrack(token, deviceId, trackToPlay.uri)
       setActiveTrack(trackToPlay)
       advance()
       setRoundStage('playing')
@@ -168,99 +152,10 @@ export function GameScreen({ queue, spotifyPlayer }) {
     })
   }
 
-  async function handleReveal() {
+  function handleReveal() {
     timer.stop()
-    const wasPlaying = roundStage === 'playing'
-    setRoundStage('revealed')
     pause()
-
-    if (wasPlaying) {
-      // On coupe un morceau qui jouait encore activement : ça déclenche un vrai changement
-      // d'état côté SDK. On attend sa confirmation avant de démarrer le préchargement du
-      // suivant, sinon les deux confirmations de pause (celle-ci et celle du préchargement)
-      // peuvent se chevaucher et se faire confondre.
-      try {
-        await waitForPlaybackState(
-          (state) => state?.paused === true && state?.track_window?.current_track?.uri === activeTrack?.uri,
-          { timeoutMs: 4000 },
-        )
-      } catch {
-        // Tant pis, on tente quand même le préchargement plutôt que de bloquer l'animateur.
-      }
-    }
-
-    // currentTrack a déjà avancé au clic précédent sur "Nouvelle musique" : c'est bien le
-    // prochain morceau à jouer qu'on précharge pendant que l'animateur commente la réponse.
-    if (currentTrack) {
-      inFlightPreloadRef.current = { uri: currentTrack.uri, promise: preloadNext(currentTrack) }
-    }
-  }
-
-  function waitForPlaybackState(predicate, { timeoutMs = 8000 } = {}) {
-    return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => reject(new Error('playback_state_timeout')), timeoutMs)
-      const unsubscribe = onPlaybackStateChanged((state) => {
-        if (predicate(state)) {
-          clearTimeout(timeoutId)
-          unsubscribe()
-          resolve(state)
-        }
-      })
-    })
-  }
-
-  async function preloadNext(nextTrack) {
-    if (!deviceId) return null
-    let previousVolume = null
-    let mustResumeMute = false
-    try {
-      previousVolume = await getVolume()
-      await setVolume(0)
-      mustResumeMute = true
-
-      const token = await getValidAccessToken()
-      await playTrack(token, deviceId, nextTrack.uri)
-      // Certaines versions du SDK réappliquent le volume "device" au démarrage d'une nouvelle
-      // lecture : on réaffirme le silence juste après le PUT /play, sans attendre la confirmation,
-      // pour réduire au maximum la fenêtre où le son pourrait fuiter.
-      await setVolume(0)
-
-      await waitForPlaybackState(
-        (state) => state?.paused === false && state?.track_window?.current_track?.uri === nextTrack.uri,
-      )
-
-      await pause()
-      // N'attend PAS juste la résolution de la promesse pause() (une commande Connect peut être
-      // acquittée avant d'être réellement appliquée) : on attend la confirmation réelle de l'état
-      // "en pause" avant de remonter le volume, sinon le morceau suivant peut se remettre à jouer
-      // à plein volume si la pause n'a en fait pas encore pris effet. On vérifie aussi l'URI pour
-      // ne pas se faire piéger par une confirmation de pause tardive d'un tout autre morceau.
-      await waitForPlaybackState(
-        (state) => state?.paused === true && state?.track_window?.current_track?.uri === nextTrack.uri,
-        { timeoutMs: 4000 },
-      )
-
-      setPreloadedTrack({ uri: nextTrack.uri })
-      return nextTrack.uri
-    } catch (err) {
-      // Dégradation gracieuse : pas grave, "Nouvelle musique" retentera un PUT /play classique.
-      console.error('[GameScreen] preloadNextTrack failed', err)
-      setPreloadedTrack(null)
-      if (mustResumeMute) {
-        // Par sécurité, on force une pause avant de remonter le volume plus bas, même si l'étape
-        // qui a échoué n'est pas celle qu'on attendait.
-        try {
-          await pause()
-        } catch {
-          // best-effort
-        }
-      }
-      return null
-    } finally {
-      if (previousVolume !== null) {
-        await setVolume(previousVolume)
-      }
-    }
+    setRoundStage('revealed')
   }
 
   if (tracks.length === 0) {

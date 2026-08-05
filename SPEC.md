@@ -241,17 +241,9 @@ Pause automatique à la fin du timer.
 
 Bouton Play/Pause.
 
-#### US-6.4 Préchargement du morceau suivant
+#### US-6.4 Préchargement du morceau suivant — abandonné
 
-**En tant qu'animateur**, je veux que le morceau suivant soit déjà chargé quand je clique sur "Nouvelle musique" après une révélation, afin qu'il n'y ait aucun temps de latence perceptible entre le clic et le début effectif de la musique.
-
-Critères :
-- Déclenché automatiquement au clic sur "Révéler" (Epic 8) : le morceau suivant (`queue[currentIndex]`, celui que "Nouvelle musique" jouera) est préchargé pendant que l'animateur commente la réponse — donc pendant un temps mort déjà présent dans le déroulé, sans rien ajouter au rythme du jeu.
-- Préchargement = lecture "silencieuse" : volume mis à 0, `PUT /me/player/play` sur le morceau suivant, puis pause dès confirmation (`player_state_changed`) — le flux est ainsi bufferisé côté device Spotify Connect. Le volume est restauré juste après la mise en pause, pendant que le morceau reste en pause.
-- **Aucun son audible ne doit fuiter** pendant le préchargement (risque de spoiler le titre à un joueur à l'oreille fine) — c'est la contrainte n°1 de cette fonctionnalité.
-- Au clic réel sur "Nouvelle musique" : reprise (`resume()` ou `PUT /play` avec `position_ms: 0`) du morceau déjà bufferisé → démarrage quasi instantané comparé à un `PUT /play` "à froid".
-- Si le morceau révélé est le dernier de la queue (US-5.4), aucun préchargement n'est déclenché.
-- Dégradation gracieuse : si le préchargement échoue (erreur réseau, device changé entre-temps...), le clic sur "Nouvelle musique" retente un `PUT /play` classique — jamais de blocage lié à ce mécanisme d'optimisation.
+Tenté en Phase 6 puis retiré : la technique (lecture silencieuse volume 0 → pause → restauration du volume) s'est montrée trop fragile face aux comportements réels du SDK Spotify (fuite audio, confirmations de pause qui se font confondre entre deux morceaux, course avec le clic suivant sur "Nouvelle musique") — plusieurs correctifs successifs n'ont pas suffi à la fiabiliser, et le gain (un léger délai en moins au clic) ne justifiait pas la complexité ni le risque de spoiler une réponse par fuite audio. `Nouvelle musique` déclenche un `PUT /me/player/play` classique à chaque fois, y compris juste après une révélation.
 
 ---
 
@@ -282,7 +274,7 @@ Bouton Réponse affichant :
 - artiste(s)
 - pochette
 
-Ce clic déclenche également le préchargement silencieux du morceau suivant (US-6.4), en parallèle de l'affichage de la réponse.
+(Le préchargement du morceau suivant à ce clic a été tenté puis abandonné — voir US-6.4.)
 
 ---
 
@@ -397,28 +389,7 @@ import { QRCodeSVG } from "qrcode.react";
 ```
 Le serveur Buzzer sert son `index.html` à la racine du même domaine que Socket.IO (`app.use(express.static("public"))`), donc l'URL à encoder est directement `VITE_SOCKET_URL` — pas besoin d'une variable d'environnement séparée.
 
-**Préchargement silencieux du morceau suivant (US-6.4) :**
-```js
-async function preloadNextTrack(player, deviceId, nextUri) {
-  const previousVolume = await player.getVolume();
-  await player.setVolume(0);
-
-  await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-    method: "PUT",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ uris: [nextUri] }),
-  });
-
-  // Attendre la confirmation via l'event `player_state_changed` (pas un setTimeout fixe)
-  await waitForPlaybackStarted(player);
-  await player.pause();
-  await player.setVolume(previousVolume); // restauré pendant que c'est en pause, donc inaudible
-}
-
-// Au clic sur "Nouvelle musique" : player.resume() (ou PUT /play position_ms: 0)
-// au lieu d'un PUT /play "à froid" → démarrage quasi instantané.
-```
-Point d'attention : toujours attendre la confirmation de lecture effective (`player_state_changed`, pas un délai arbitraire) avant de couper — sinon le `pause()` peut arriver avant que le son ne sorte réellement, ou au contraire trop tard.
+**Préchargement du morceau suivant — abandonné (US-6.4) :** tenté (volume 0 → play → pause → restauration du volume) puis retiré après plusieurs bugs réels en conditions de jeu (fuite audio pendant la révélation, confirmations de pause confondues entre deux morceaux, course avec le clic suivant sur "Nouvelle musique"). `Nouvelle musique` fait un `PUT /me/player/play` classique à chaque fois.
 
 ---
 
@@ -474,12 +445,11 @@ Chaque phase est livrable et testable indépendamment.
 - [ ] `useTimer` : durée configurable 3–60s, démarrage 1s après confirmation de lecture (écoute `player_state_changed`)
 - [ ] Pause auto en fin de timer, bouton Play/Pause
 - [ ] `Timer.jsx` : secondes + barre de progression
-- [ ] `preloadNextTrack()` (US-6.4) : lecture silencieuse (volume 0) + pause du morceau suivant, restauration du volume, avec dégradation gracieuse si ça échoue
+- [ ] ~~`preloadNextTrack()` (US-6.4)~~ — tenté puis abandonné, voir US-6.4
 
 ### Phase 6 — Révélation (Epic 8)
 - [ ] `TrackInfo.jsx` : titre, artiste(s), pochette au clic sur "Réponse", masqué par défaut
-- [ ] Déclenchement de `preloadNextTrack()` au clic sur "Révéler" (en parallèle de l'affichage), sauf si dernier morceau de la queue
-- [ ] "Nouvelle musique" utilise `resume()`/`position_ms: 0` sur le morceau préchargé au lieu d'un `PUT /play` à froid
+- [ ] "Nouvelle musique" relance un `PUT /play` classique après une révélation (pas de préchargement)
 
 ### Phase 7 — Buzz temps réel (Epic 9)
 - [ ] `socket.js` : connexion à `VITE_SOCKET_URL`, écoute `buzzedList` / `reset` / `tooLate`
@@ -520,7 +490,6 @@ Chaque phase est livrable et testable indépendamment.
 - Playlists gérables par simple copier-coller de lien
 - QR code d'invitation affichable/masquable, lisible depuis la distance canapé-TV
 - Lecture Spotify stable
-- Aucun lag perceptible entre la révélation et le lancement du morceau suivant (préchargement silencieux, sans fuite audio)
 - Queue persistante après refresh
 - Timer fiable
 - Buzz temps réel classé (top 5), aligné sur le serveur réel
