@@ -399,6 +399,7 @@ Le serveur Buzzer sert son `index.html` à la racine du même domaine que Socket
 - La session reprend après refresh.
 - Le timer ne démarre jamais si la lecture échoue.
 - Les buzz sont réinitialisés à chaque manche.
+- Dès qu'un joueur buzze, la lecture se met en pause automatiquement (une seule fois par manche, au premier buzz) pour que tout le monde entende la réponse annoncée.
 - Les joueurs ne voient jamais les réponses.
 - Le Client ID Spotify et la liste des playlists persistent indépendamment de la session de jeu (ils ne sont pas réinitialisés à chaque nouvelle partie).
 

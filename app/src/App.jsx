@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BuzzList from './components/BuzzList.jsx'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
@@ -85,6 +85,17 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
   const [roundStage, setRoundStage] = useState('idle')
   const [activeTrack, setActiveTrack] = useState(null)
   const [playbackError, setPlaybackError] = useState(null)
+
+  // Dès qu'un joueur buzze pendant une manche en cours, on coupe le son pour que tout le monde
+  // entende la réponse annoncée — ne se déclenche qu'une fois par manche (roundStage quitte
+  // 'playing' au premier buzz, donc les buzz suivants du même classement ne re-déclenchent rien).
+  useEffect(() => {
+    if (buzz.buzzes.length === 0 || roundStage !== 'playing') return
+    pause()
+    timer.stop()
+    setRoundStage('paused')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buzz.buzzes])
 
   function changeDuration(delta) {
     setDuration((current) => {

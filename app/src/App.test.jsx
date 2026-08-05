@@ -105,6 +105,52 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(screen.getByText('Pause')).toBeInTheDocument()
   })
 
+  it('pauses the music automatically as soon as someone buzzes', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue()
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+
+    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buildBuzz()} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    act(() => vi.advanceTimersByTime(1000))
+    expect(screen.getByText('Pause')).toBeInTheDocument()
+
+    // Un joueur buzze : le classement passe de vide à non-vide
+    rerender(
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buildBuzz({ buzzes: [{ name: 'Marie-Lou', reactionTime: 620 }] })}
+      />,
+    )
+
+    expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Continuer')).toBeInTheDocument()
+
+    // Un 2e buzz sur la même manche ne doit pas re-déclencher pause() une seconde fois
+    rerender(
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buildBuzz({
+          buzzes: [
+            { name: 'Marie-Lou', reactionTime: 620 },
+            { name: 'Jonas', reactionTime: 910 },
+          ],
+        })}
+      />,
+    )
+    expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps showing the stage while still playing/revealing the last track (isFinished fires early)', async () => {
     const onStateChangeHolder = { current: null }
     const queue = buildQueue()
