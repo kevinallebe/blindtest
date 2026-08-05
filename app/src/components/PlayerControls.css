@@ -1,0 +1,36 @@
+.cbt-player-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.cbt-player-btn--neutral {
+  background: oklch(0.28 0.02 240);
+  border: 2px solid oklch(0.4 0.02 240);
+  color: var(--color-text);
+  font-size: 16px;
+  padding: 16px 26px;
+  border-radius: 16px;
+}
+
+.cbt-player-btn--neutral:hover:not(:disabled) {
+  background: oklch(0.34 0.02 240);
+}
+
+.cbt-player-btn--neutral:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cbt-player-btn--primary {
+  background: linear-gradient(135deg, var(--color-accent-teal), var(--color-accent-teal-2));
+  color: var(--color-bg-base);
+  font-size: 16px;
+  padding: 16px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px oklch(0.5 0.13 190 / 0.35);
+}
+
+.cbt-player-btn--primary:hover {
+  filter: brightness(1.08);
+}

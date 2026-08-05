@@ -1,7 +1,9 @@
 // Phase 4 — persistance de la queue/currentIndex (US-5.2).
-// Phase 8 unifiera ici le reste du schéma (timerDuration, settings) sous un versionnage commun.
+// Phase 8 unifiera ici le reste du schéma (settings) sous un versionnage commun.
 const QUEUE_KEY = 'cbt_played_queue'
 const CURRENT_INDEX_KEY = 'cbt_current_index'
+const TIMER_DURATION_KEY = 'cbt_timer_duration'
+const DEFAULT_TIMER_DURATION = 20
 
 export function getStoredQueue() {
   const raw = localStorage.getItem(QUEUE_KEY)
@@ -27,4 +29,13 @@ export function persistQueueState(queue, currentIndex) {
 export function clearQueueState() {
   localStorage.removeItem(QUEUE_KEY)
   localStorage.removeItem(CURRENT_INDEX_KEY)
+}
+
+export function getStoredTimerDuration() {
+  const parsed = Number(localStorage.getItem(TIMER_DURATION_KEY))
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_TIMER_DURATION
+}
+
+export function setStoredTimerDuration(duration) {
+  localStorage.setItem(TIMER_DURATION_KEY, String(duration))
 }

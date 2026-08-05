@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchTracksForPlaylists, mergeAndDedupeTracks } from './spotify.js'
+import { fetchTracksForPlaylists, mergeAndDedupeTracks, playTrack } from './spotify.js'
 
 function track(uri) {
   return { uri, name: uri, artists: 'Artist', albumName: 'Album', coverUrl: null }
@@ -65,5 +65,25 @@ describe('fetchTracksForPlaylists', () => {
 
     expect(result.tracks.map((t) => t.uri)).toEqual(['spotify:track:a'])
     expect(result.failedPlaylistIds).toEqual(['editorial-blocked'])
+  })
+})
+
+describe('playTrack', () => {
+  it('resolves when Spotify confirms with 204', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ status: 204 })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(playTrack('token', 'device1', 'spotify:track:a')).resolves.toBeUndefined()
+
+    const [url, options] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://api.spotify.com/v1/me/player/play?device_id=device1')
+    expect(options.method).toBe('PUT')
+    expect(JSON.parse(options.body)).toEqual({ uris: ['spotify:track:a'] })
+  })
+
+  it('throws when Spotify does not return 204 (e.g. no active device)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 404 }))
+
+    await expect(playTrack('token', 'device1', 'spotify:track:a')).rejects.toThrow('spotify_play_failed_404')
   })
 })

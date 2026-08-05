@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { clearQueueState, getStoredCurrentIndex, getStoredQueue, persistQueueState } from './storage.js'
+import {
+  clearQueueState,
+  getStoredCurrentIndex,
+  getStoredQueue,
+  getStoredTimerDuration,
+  persistQueueState,
+  setStoredTimerDuration,
+} from './storage.js'
 
 beforeEach(() => {
   localStorage.clear()
@@ -28,5 +35,16 @@ describe('queue persistence', () => {
   it('ignores corrupted JSON gracefully', () => {
     localStorage.setItem('cbt_played_queue', '{not json')
     expect(getStoredQueue()).toBeNull()
+  })
+})
+
+describe('timer duration persistence', () => {
+  it('defaults to 20s when nothing is stored', () => {
+    expect(getStoredTimerDuration()).toBe(20)
+  })
+
+  it('round-trips a stored duration', () => {
+    setStoredTimerDuration(35)
+    expect(getStoredTimerDuration()).toBe(35)
   })
 })

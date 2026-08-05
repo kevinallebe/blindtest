@@ -76,4 +76,16 @@ export async function fetchTracksForPlaylists(accessToken, playlistIds) {
   return { ...mergeAndDedupeTracks(trackLists), failedPlaylistIds }
 }
 
-// Phase 5 — PUT /me/player/play, préchargement (US-6.4)
+// Le timer ne doit démarrer que si cet appel réussit (204) — voir US-6.1.
+export async function playTrack(accessToken, deviceId, uri) {
+  const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uris: [uri] }),
+  })
+  if (response.status !== 204) {
+    throw new Error(`spotify_play_failed_${response.status}`)
+  }
+}
+
+// Phase 6 — préchargement silencieux du morceau suivant (US-6.4)

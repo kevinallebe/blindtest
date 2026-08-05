@@ -1,0 +1,39 @@
+.cbt-timer {
+  width: 100%;
+  max-width: 520px;
+}
+
+.cbt-timer__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.cbt-timer__label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.cbt-timer__value {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--color-accent-orange);
+  line-height: 1;
+}
+
+.cbt-timer__track {
+  height: 16px;
+  border-radius: 999px;
+  background: oklch(0.3 0.02 240);
+  overflow: hidden;
+}
+
+.cbt-timer__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-teal), var(--color-accent-gold));
+  transition: width 1s linear;
+}

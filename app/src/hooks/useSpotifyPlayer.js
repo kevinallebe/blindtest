@@ -78,6 +78,18 @@ export function useSpotifyPlayer() {
     redirectToSpotifyAuthorize().catch((err) => fail(err.code ?? 'unknown'))
   }, [fail])
 
+  const togglePlay = useCallback(() => playerRef.current?.togglePlay(), [])
+  const pause = useCallback(() => playerRef.current?.pause(), [])
+  const resume = useCallback(() => playerRef.current?.resume(), [])
+
+  // Retourne une fonction de désinscription, à appeler une fois la confirmation reçue (US-7.2).
+  const onPlaybackStateChanged = useCallback((callback) => {
+    const player = playerRef.current
+    if (!player) return () => {}
+    player.addListener('player_state_changed', callback)
+    return () => player.removeListener('player_state_changed', callback)
+  }, [])
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     // Détection indépendante du chemin : la redirect URI enregistrée côté Spotify peut pointer
@@ -125,5 +137,5 @@ export function useSpotifyPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { status, error, deviceId, connect }
+  return { status, error, deviceId, connect, togglePlay, pause, resume, onPlaybackStateChanged }
 }
