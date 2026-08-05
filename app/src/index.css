@@ -63,3 +63,37 @@ body {
   text-align: center;
   padding: 40px;
 }
+
+.cbt-btn {
+  font-family: var(--font-body);
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+}
+
+.cbt-btn--primary {
+  background: linear-gradient(135deg, var(--color-accent-teal), var(--color-accent-teal-2));
+  color: var(--color-bg-base);
+  font-size: 16px;
+  padding: 16px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px oklch(0.5 0.13 190 / 0.35);
+  transition: filter 0.15s ease;
+}
+
+.cbt-btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.cbt-auth-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.cbt-auth-gate__error {
+  color: oklch(0.8 0.16 30);
+  font-weight: 700;
+  max-width: 560px;
+}

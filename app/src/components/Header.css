@@ -97,7 +97,7 @@
   background: var(--color-status-offline);
 }
 
-.cbt-btn {
+.cbt-header-btn {
   font-family: var(--font-body);
   font-weight: 800;
   font-size: 15px;
@@ -107,22 +107,22 @@
   transition: background-color 0.15s ease;
 }
 
-.cbt-btn--outline-orange {
+.cbt-header-btn--invite {
   border: 2px solid var(--color-accent-orange);
   background: transparent;
   color: oklch(0.85 0.13 30);
 }
 
-.cbt-btn--outline-orange:hover {
+.cbt-header-btn--invite:hover {
   background: oklch(0.72 0.18 30 / 0.15);
 }
 
-.cbt-btn--outline-neutral {
+.cbt-header-btn--settings {
   border: 2px solid oklch(0.4 0.02 240);
   background: oklch(0.22 0.02 240 / 0.6);
   color: var(--color-text);
 }
 
-.cbt-btn--outline-neutral:hover {
+.cbt-header-btn--settings:hover {
   background: oklch(0.3 0.02 240);
 }

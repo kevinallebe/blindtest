@@ -21,10 +21,10 @@ export default function Header({
       <div className="cbt-header__actions">
         <StatusPill label="Spotify" connected={spotifyConnected} />
         <StatusPill label="Buzzer" connected={buzzerConnected} />
-        <button type="button" className="cbt-btn cbt-btn--outline-orange" onClick={onInvite}>
+        <button type="button" className="cbt-header-btn cbt-header-btn--invite" onClick={onInvite}>
           Inviter les joueurs
         </button>
-        <button type="button" className="cbt-btn cbt-btn--outline-neutral" onClick={onSettings}>
+        <button type="button" className="cbt-header-btn cbt-header-btn--settings" onClick={onSettings}>
           Réglages
         </button>
       </div>
