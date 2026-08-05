@@ -44,15 +44,38 @@ describe('PlayerControls', () => {
   })
 
   it('shows "Continuer" and still allows revealing once paused', () => {
-    render(<PlayerControls onPlayNext={() => {}} onTogglePause={() => {}} onReveal={() => {}} roundStage="paused" />)
+    render(
+      <PlayerControls
+        onPlayNext={() => {}}
+        onTogglePause={() => {}}
+        onReveal={() => {}}
+        roundStage="paused"
+        isPaused
+      />,
+    )
     expect(screen.getByText('Continuer')).toBeInTheDocument()
     expect(screen.getByText('Révéler la réponse')).toBeInTheDocument()
   })
 
-  it('hides Pause/Continuer/Révéler once the answer is revealed', () => {
-    render(<PlayerControls onPlayNext={() => {}} canPlayNext roundStage="revealed" />)
-    expect(screen.queryByText('Pause')).not.toBeInTheDocument()
-    expect(screen.queryByText('Continuer')).not.toBeInTheDocument()
+  it('keeps Pause/Continuer available after the reveal (participants may want to keep listening), but hides Révéler', () => {
+    const onTogglePause = vi.fn()
+    const { rerender } = render(
+      <PlayerControls onPlayNext={() => {}} onTogglePause={onTogglePause} canPlayNext roundStage="revealed" isPaused />,
+    )
     expect(screen.queryByText('Révéler la réponse')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Continuer'))
+    expect(onTogglePause).toHaveBeenCalledTimes(1)
+
+    rerender(
+      <PlayerControls
+        onPlayNext={() => {}}
+        onTogglePause={onTogglePause}
+        canPlayNext
+        roundStage="revealed"
+        isPaused={false}
+      />,
+    )
+    expect(screen.getByText('Pause')).toBeInTheDocument()
   })
 })

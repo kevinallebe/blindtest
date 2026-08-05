@@ -85,6 +85,9 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
   const [roundStage, setRoundStage] = useState('idle')
   const [activeTrack, setActiveTrack] = useState(null)
   const [playbackError, setPlaybackError] = useState(null)
+  // Après une révélation, la lecture est en pause par défaut mais reste contrôlable : certains
+  // groupes veulent continuer à écouter le morceau une fois la réponse annoncée.
+  const [isRevealedPlaying, setIsRevealedPlaying] = useState(false)
 
   // Dès qu'un joueur buzze pendant une manche en cours, on coupe le son pour que tout le monde
   // entende la réponse annoncée — ne se déclenche qu'une fois par manche (roundStage quitte
@@ -171,7 +174,13 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
   function handleReveal() {
     timer.stop()
     pause()
+    setIsRevealedPlaying(false)
     setRoundStage('revealed')
+  }
+
+  function handleToggleRevealedPlayback() {
+    togglePlay()
+    setIsRevealedPlaying((wasPlaying) => !wasPlaying)
   }
 
   if (tracks.length === 0) {
@@ -247,10 +256,11 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
         ) : (
           <PlayerControls
             onPlayNext={handlePlayNext}
-            onTogglePause={handleTogglePause}
+            onTogglePause={isRevealed ? handleToggleRevealedPlayback : handleTogglePause}
             onReveal={handleReveal}
             canPlayNext={!timer.isRunning && !isFinished}
             roundStage={roundStage}
+            isPaused={isRevealed ? !isRevealedPlaying : roundStage === 'paused'}
           />
         )}
         {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}

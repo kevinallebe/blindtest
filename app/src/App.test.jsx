@@ -214,8 +214,15 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(screen.getByText('X — A')).toBeInTheDocument()
     expect(screen.getByText('Album : Alb A')).toBeInTheDocument()
     expect(screen.queryByText(/Temps restant/)).not.toBeInTheDocument()
-    expect(screen.queryByText('Pause')).not.toBeInTheDocument()
-    expect(screen.queryByText('Continuer')).not.toBeInTheDocument()
+    expect(screen.queryByText('Révéler la réponse')).not.toBeInTheDocument()
+
+    // Le bouton Continuer reste disponible après la révélation, au cas où les participants
+    // veulent continuer à écouter le morceau.
+    expect(screen.getByText('Continuer')).toBeInTheDocument()
+    const pauseCallsBeforeToggle = spotifyPlayer.togglePlay.mock.calls.length
+    fireEvent.click(screen.getByText('Continuer'))
+    expect(spotifyPlayer.togglePlay.mock.calls.length).toBe(pauseCallsBeforeToggle + 1)
+    expect(screen.getByText('Pause')).toBeInTheDocument()
 
     // "Nouvelle musique" relance un PUT /play classique pour trackB, sans mécanisme de préchargement
     await act(async () => {

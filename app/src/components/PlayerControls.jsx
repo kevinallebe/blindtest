@@ -1,8 +1,9 @@
 import './PlayerControls.css'
 
-export default function PlayerControls({ onPlayNext, onTogglePause, onReveal, canPlayNext, roundStage }) {
-  const isPaused = roundStage === 'paused'
-  const showPauseToggle = roundStage === 'playing' || roundStage === 'paused'
+export default function PlayerControls({ onPlayNext, onTogglePause, onReveal, canPlayNext, roundStage, isPaused }) {
+  // Le bouton Pause/Continuer reste disponible après la révélation : les participants ont parfois
+  // envie de continuer à écouter le morceau une fois la réponse annoncée.
+  const showPauseToggle = roundStage === 'playing' || roundStage === 'paused' || roundStage === 'revealed'
   const canReveal = roundStage === 'playing' || roundStage === 'paused'
 
   return (

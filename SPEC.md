@@ -274,6 +274,8 @@ Bouton Réponse affichant :
 - artiste(s)
 - pochette
 
+Le bouton Pause/Continuer reste disponible après la révélation (lecture en pause par défaut) : les participants ont parfois envie de continuer à écouter le morceau une fois la réponse annoncée.
+
 (Le préchargement du morceau suivant à ce clic a été tenté puis abandonné — voir US-6.4.)
 
 ---
