@@ -80,7 +80,9 @@ export function useSpotifyPlayer() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const isCallback = window.location.pathname === '/callback'
+    // Détection indépendante du chemin : la redirect URI enregistrée côté Spotify peut pointer
+    // vers n'importe quel chemin (ex: racine ou /callback), seuls les query params comptent ici.
+    const isCallback = params.has('code') || params.has('error')
 
     if (isCallback && params.get('error')) {
       window.history.replaceState({}, '', '/')
