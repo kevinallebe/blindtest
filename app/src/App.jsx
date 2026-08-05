@@ -122,17 +122,15 @@ export function GameScreen({ queue, spotifyPlayer }) {
       advance()
       setRoundStage('playing')
 
-      const unsubscribe = onPlaybackStateChanged((state) => {
-        if (state?.paused === false && state?.track_window?.current_track?.uri === trackToPlay.uri) {
-          unsubscribe()
-          setTimeout(() => {
-            timer.start(() => {
-              pause()
-              setRoundStage('paused')
-            })
-          }, 1000)
-        }
-      })
+      await waitForPlaybackState(
+        (state) => state?.paused === false && state?.track_window?.current_track?.uri === trackToPlay.uri,
+      )
+      setTimeout(() => {
+        timer.start(() => {
+          pause()
+          setRoundStage('paused')
+        })
+      }, 1000)
     } catch (err) {
       console.error('[GameScreen] playTrack failed', err)
       setPlaybackError("La lecture a échoué — vérifie qu'un appareil Spotify actif est disponible.")
@@ -169,33 +167,60 @@ export function GameScreen({ queue, spotifyPlayer }) {
     }
   }
 
+  function waitForPlaybackState(predicate, { timeoutMs = 8000 } = {}) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject(new Error('playback_state_timeout')), timeoutMs)
+      const unsubscribe = onPlaybackStateChanged((state) => {
+        if (predicate(state)) {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          resolve(state)
+        }
+      })
+    })
+  }
+
   async function preloadNext(nextTrack) {
     if (!deviceId) return
     let previousVolume = null
+    let mustResumeMute = false
     try {
       previousVolume = await getVolume()
       await setVolume(0)
+      mustResumeMute = true
 
       const token = await getValidAccessToken()
       await playTrack(token, deviceId, nextTrack.uri)
+      // Certaines versions du SDK réappliquent le volume "device" au démarrage d'une nouvelle
+      // lecture : on réaffirme le silence juste après le PUT /play, sans attendre la confirmation,
+      // pour réduire au maximum la fenêtre où le son pourrait fuiter.
+      await setVolume(0)
 
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(() => reject(new Error('preload_timeout')), 8000)
-        const unsubscribe = onPlaybackStateChanged((state) => {
-          if (state?.paused === false && state?.track_window?.current_track?.uri === nextTrack.uri) {
-            clearTimeout(timeoutId)
-            unsubscribe()
-            resolve()
-          }
-        })
-      })
+      await waitForPlaybackState(
+        (state) => state?.paused === false && state?.track_window?.current_track?.uri === nextTrack.uri,
+      )
 
       await pause()
+      // N'attend PAS juste la résolution de la promesse pause() (une commande Connect peut être
+      // acquittée avant d'être réellement appliquée) : on attend la confirmation réelle de l'état
+      // "en pause" avant de remonter le volume, sinon le morceau suivant peut se remettre à jouer
+      // à plein volume si la pause n'a en fait pas encore pris effet.
+      await waitForPlaybackState((state) => state?.paused === true, { timeoutMs: 4000 })
+
       setPreloadedTrack({ uri: nextTrack.uri })
     } catch (err) {
       // Dégradation gracieuse : pas grave, "Nouvelle musique" retentera un PUT /play classique.
       console.error('[GameScreen] preloadNextTrack failed', err)
       setPreloadedTrack(null)
+      if (mustResumeMute) {
+        // Par sécurité, on force une pause avant de remonter le volume plus bas, même si l'étape
+        // qui a échoué n'est pas celle qu'on attendait.
+        try {
+          await pause()
+        } catch {
+          // best-effort
+        }
+      }
     } finally {
       if (previousVolume !== null) {
         await setVolume(previousVolume)

@@ -74,7 +74,10 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(spotifyPlayer.activateElement).toHaveBeenCalledTimes(1)
 
     // Confirme la lecture réelle (player_state_changed) -> déclenche le délai 1s puis le timer
-    act(() => onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } }))
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
     act(() => vi.advanceTimersByTime(1000))
 
     // Laisse le timer de 3s (voir cbt_timer_duration ci-dessus) se terminer naturellement
@@ -131,7 +134,10 @@ describe('GameScreen — playback/timer orchestration', () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
       await flushMicrotasks()
     })
-    act(() => onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } }))
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
     act(() => vi.advanceTimersByTime(1000))
 
     // useQueue a avancé : currentTrack pointe maintenant vers trackB (le prochain à jouer)
@@ -154,9 +160,16 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0)
     expect(spotifyService.playTrack).toHaveBeenNthCalledWith(2, 'token', 'device1', trackB.uri)
 
-    // Confirme le préchargement (player_state_changed pour trackB) -> pause + volume restauré
+    // Confirme le préchargement (player_state_changed "en lecture" pour trackB) -> déclenche pause()
     await act(async () => {
       onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackB.uri } } })
+      await flushMicrotasks()
+    })
+
+    // On n'attend pas juste la résolution de pause() : il faut la confirmation réelle "en pause"
+    // avant de remonter le volume (voir le commentaire dans preloadNext).
+    await act(async () => {
+      onStateChangeHolder.current({ paused: true })
       await flushMicrotasks()
     })
     expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0.7)
