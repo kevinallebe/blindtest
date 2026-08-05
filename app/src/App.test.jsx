@@ -148,7 +148,7 @@ describe('GameScreen — playback/timer orchestration', () => {
       />,
     )
 
-    // Révèle la réponse de trackA -> stoppe la lecture + précharge trackB en silence
+    // Révèle la réponse de trackA (encore en train de jouer, pas en pause) -> déclenche pause()
     await act(async () => {
       fireEvent.click(screen.getByText('Révéler la réponse'))
       await flushMicrotasks()
@@ -157,6 +157,16 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(spotifyPlayer.pause).toHaveBeenCalled()
     expect(screen.getByText('X — A')).toBeInTheDocument()
     expect(screen.getByText('Album : Alb A')).toBeInTheDocument()
+    // Le préchargement ne doit pas démarrer avant la confirmation que trackA est bien en pause
+    // (sinon les deux confirmations de pause, trackA et trackB, peuvent se faire confondre —
+    // c'était le bug rapporté : le volume ne se remettait pas quand on révélait sans pause manuelle).
+    expect(spotifyPlayer.setVolume).not.toHaveBeenCalled()
+
+    // Confirme que trackA est bien en pause -> démarre alors le préchargement de trackB
+    await act(async () => {
+      onStateChangeHolder.current({ paused: true, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
     expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0)
     expect(spotifyService.playTrack).toHaveBeenNthCalledWith(2, 'token', 'device1', trackB.uri)
 
@@ -167,9 +177,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     })
 
     // On n'attend pas juste la résolution de pause() : il faut la confirmation réelle "en pause"
-    // avant de remonter le volume (voir le commentaire dans preloadNext).
+    // pour LE BON morceau avant de remonter le volume (voir le commentaire dans preloadNext).
     await act(async () => {
-      onStateChangeHolder.current({ paused: true })
+      onStateChangeHolder.current({ paused: true, track_window: { current_track: { uri: trackB.uri } } })
       await flushMicrotasks()
     })
     expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0.7)
@@ -182,5 +192,35 @@ describe('GameScreen — playback/timer orchestration', () => {
 
     expect(spotifyPlayer.resume).toHaveBeenCalledTimes(1)
     expect(spotifyService.playTrack).toHaveBeenCalledTimes(2)
+  })
+
+  it('starts preloading immediately when revealing from an already-paused round (no wait needed)', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue({ queue: [trackA, trackB], currentTrack: trackA })
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+
+    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    act(() => vi.advanceTimersByTime(1000))
+
+    // Pause manuelle avant de révéler (roundStage devient 'paused')
+    fireEvent.click(screen.getByText('Pause'))
+    expect(screen.getByText('Continuer')).toBeInTheDocument()
+
+    // Révéler depuis un état déjà en pause ne doit pas attendre de confirmation supplémentaire :
+    // le préchargement démarre tout de suite.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Révéler la réponse'))
+      await flushMicrotasks()
+    })
+    expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0)
   })
 })

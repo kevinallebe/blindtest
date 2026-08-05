@@ -155,10 +155,26 @@ export function GameScreen({ queue, spotifyPlayer }) {
     })
   }
 
-  function handleReveal() {
+  async function handleReveal() {
     timer.stop()
-    pause()
+    const wasPlaying = roundStage === 'playing'
     setRoundStage('revealed')
+    pause()
+
+    if (wasPlaying) {
+      // On coupe un morceau qui jouait encore activement : ça déclenche un vrai changement
+      // d'état côté SDK. On attend sa confirmation avant de démarrer le préchargement du
+      // suivant, sinon les deux confirmations de pause (celle-ci et celle du préchargement)
+      // peuvent se chevaucher et se faire confondre.
+      try {
+        await waitForPlaybackState(
+          (state) => state?.paused === true && state?.track_window?.current_track?.uri === activeTrack?.uri,
+          { timeoutMs: 4000 },
+        )
+      } catch {
+        // Tant pis, on tente quand même le préchargement plutôt que de bloquer l'animateur.
+      }
+    }
 
     // currentTrack a déjà avancé au clic précédent sur "Nouvelle musique" : c'est bien le
     // prochain morceau à jouer qu'on précharge pendant que l'animateur commente la réponse.
@@ -204,8 +220,12 @@ export function GameScreen({ queue, spotifyPlayer }) {
       // N'attend PAS juste la résolution de la promesse pause() (une commande Connect peut être
       // acquittée avant d'être réellement appliquée) : on attend la confirmation réelle de l'état
       // "en pause" avant de remonter le volume, sinon le morceau suivant peut se remettre à jouer
-      // à plein volume si la pause n'a en fait pas encore pris effet.
-      await waitForPlaybackState((state) => state?.paused === true, { timeoutMs: 4000 })
+      // à plein volume si la pause n'a en fait pas encore pris effet. On vérifie aussi l'URI pour
+      // ne pas se faire piéger par une confirmation de pause tardive d'un tout autre morceau.
+      await waitForPlaybackState(
+        (state) => state?.paused === true && state?.track_window?.current_track?.uri === nextTrack.uri,
+        { timeoutMs: 4000 },
+      )
 
       setPreloadedTrack({ uri: nextTrack.uri })
     } catch (err) {
