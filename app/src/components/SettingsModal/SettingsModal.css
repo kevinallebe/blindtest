@@ -1,0 +1,96 @@
+.cbt-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: oklch(0.08 0.02 240 / 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.cbt-settings-card {
+  position: relative;
+  width: min(1400px, 95vw);
+  height: min(880px, 90vh);
+  background: oklch(0.2 0.03 240 / 0.97);
+  border: 1px solid oklch(0.34 0.03 240);
+  border-radius: 28px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;
+  box-shadow: 0 30px 90px oklch(0.08 0.03 240 / 0.6);
+  color: var(--color-text);
+}
+
+.cbt-settings-card__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid oklch(0.4 0.02 240);
+  background: oklch(0.22 0.02 240 / 0.6);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cbt-settings-card__close:hover {
+  background: oklch(0.3 0.02 240);
+}
+
+.cbt-settings-sidebar {
+  background: oklch(0.17 0.03 240);
+  padding: 36px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid oklch(0.32 0.03 240);
+}
+
+.cbt-settings-sidebar__title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 24px;
+  padding: 0 12px 20px;
+}
+
+.cbt-settings-sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cbt-settings-sidebar__nav-item--active {
+  background: linear-gradient(90deg, oklch(0.4 0.13 30 / 0.4), transparent);
+  border-color: oklch(0.55 0.13 30 / 0.5);
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.cbt-settings-content {
+  padding: 40px 48px;
+  overflow-y: auto;
+}
+
+.cbt-settings-placeholder {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 15px;
+}

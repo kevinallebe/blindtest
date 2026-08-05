@@ -1,4 +1,7 @@
-// Phase 8 — durée, volume, mode révélation
 export default function GameSettingsTab() {
-  return null
+  return (
+    <p className="cbt-settings-placeholder">
+      Réglages du jeu (durée du timer, volume, mode de révélation) — arrivent en Phase 8.
+    </p>
+  )
 }

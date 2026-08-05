@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import Header from './components/Header.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
+import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
 
 function App() {
   const { status, error, connect } = useSpotifyPlayer()
   const [showInvite, setShowInvite] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <>
@@ -13,12 +15,13 @@ function App() {
         spotifyConnected={status === 'ready'}
         buzzerConnected={false}
         onInvite={() => setShowInvite(true)}
-        onSettings={() => {}}
+        onSettings={() => setShowSettings(true)}
       />
       <main className="cbt-placeholder">
         <SpotifyAuthGate status={status} error={error} onConnect={connect} />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   )
 }
