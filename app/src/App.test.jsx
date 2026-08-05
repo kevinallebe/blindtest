@@ -223,4 +223,68 @@ describe('GameScreen — playback/timer orchestration', () => {
     })
     expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0)
   })
+
+  it('waits for an in-flight preload of the same track instead of racing it (bug: volume stuck muted)', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue({ queue: [trackA, trackB], currentTrack: trackA })
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+
+    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />)
+
+    // Lance trackA
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    act(() => vi.advanceTimersByTime(1000))
+
+    rerender(
+      <GameScreen
+        queue={buildQueue({ queue: [trackA, trackB], currentTrack: trackB, advance: queue.advance, loadQueue: queue.loadQueue })}
+        spotifyPlayer={spotifyPlayer}
+      />,
+    )
+
+    // Révèle -> attend confirmation de pause de trackA -> démarre le préchargement de trackB
+    await act(async () => {
+      fireEvent.click(screen.getByText('Révéler la réponse'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: true, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    // Le préchargement a démarré (silence + PUT /play trackB) mais n'a pas encore reçu sa
+    // confirmation de lecture : il est encore "en vol".
+    expect(spotifyPlayer.setVolume).toHaveBeenCalledWith(0)
+
+    // L'animateur clique "Nouvelle musique" très vite, avant que le préchargement n'ait fini de
+    // se remettre en pause. Ça ne doit PAS déclencher un second PUT /play concurrent.
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    expect(spotifyService.playTrack).toHaveBeenCalledTimes(2)
+    expect(spotifyPlayer.resume).not.toHaveBeenCalled()
+
+    // Le préchargement se termine normalement (confirmation "en lecture" puis "en pause" trackB)
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackB.uri } } })
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: true, track_window: { current_track: { uri: trackB.uri } } })
+      await flushMicrotasks()
+    })
+
+    // Le clic sur "Nouvelle musique", qui attendait, peut alors reprendre : reprise du morceau
+    // déjà préchargé (pas de nouveau PUT /play), et le volume doit être remonté au niveau normal.
+    expect(spotifyPlayer.resume).toHaveBeenCalledTimes(1)
+    expect(spotifyService.playTrack).toHaveBeenCalledTimes(2)
+    expect(spotifyPlayer.setVolume).toHaveBeenLastCalledWith(0.7)
+  })
 })

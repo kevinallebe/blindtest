@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
@@ -92,6 +92,9 @@ export function GameScreen({ queue, spotifyPlayer }) {
   const [activeTrack, setActiveTrack] = useState(null)
   const [preloadedTrack, setPreloadedTrack] = useState(null)
   const [playbackError, setPlaybackError] = useState(null)
+  // Suivi du préchargement en cours (hors état React, pour être lu de façon synchrone/fiable :
+  // preloadedTrack via une closure figée ne reflèterait pas encore le résultat pendant l'attente).
+  const inFlightPreloadRef = useRef({ uri: null, promise: null })
 
   function changeDuration(delta) {
     setDuration((current) => {
@@ -108,7 +111,17 @@ export function GameScreen({ queue, spotifyPlayer }) {
     activateElement()
     setPlaybackError(null)
     const trackToPlay = currentTrack
-    const usePreloaded = preloadedTrack?.uri === trackToPlay.uri
+    let usePreloaded = preloadedTrack?.uri === trackToPlay.uri
+
+    // Un préchargement pour CE morceau est peut-être encore en train de se terminer (mise en
+    // pause + restauration du volume) : on attend son issue réelle avant d'agir, plutôt que de
+    // risquer une course où les deux séquences se marchent dessus (son coupé après coup, timer
+    // démarré sans lecture réelle...).
+    if (inFlightPreloadRef.current.uri === trackToPlay.uri && inFlightPreloadRef.current.promise) {
+      const resolvedUri = await inFlightPreloadRef.current.promise
+      usePreloaded = resolvedUri === trackToPlay.uri
+    }
+    inFlightPreloadRef.current = { uri: null, promise: null }
 
     try {
       if (usePreloaded) {
@@ -179,7 +192,7 @@ export function GameScreen({ queue, spotifyPlayer }) {
     // currentTrack a déjà avancé au clic précédent sur "Nouvelle musique" : c'est bien le
     // prochain morceau à jouer qu'on précharge pendant que l'animateur commente la réponse.
     if (currentTrack) {
-      preloadNext(currentTrack)
+      inFlightPreloadRef.current = { uri: currentTrack.uri, promise: preloadNext(currentTrack) }
     }
   }
 
@@ -197,7 +210,7 @@ export function GameScreen({ queue, spotifyPlayer }) {
   }
 
   async function preloadNext(nextTrack) {
-    if (!deviceId) return
+    if (!deviceId) return null
     let previousVolume = null
     let mustResumeMute = false
     try {
@@ -228,6 +241,7 @@ export function GameScreen({ queue, spotifyPlayer }) {
       )
 
       setPreloadedTrack({ uri: nextTrack.uri })
+      return nextTrack.uri
     } catch (err) {
       // Dégradation gracieuse : pas grave, "Nouvelle musique" retentera un PUT /play classique.
       console.error('[GameScreen] preloadNextTrack failed', err)
@@ -241,6 +255,7 @@ export function GameScreen({ queue, spotifyPlayer }) {
           // best-effort
         }
       }
+      return null
     } finally {
       if (previousVolume !== null) {
         await setVolume(previousVolume)
