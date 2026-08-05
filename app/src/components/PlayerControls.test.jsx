@@ -16,13 +16,13 @@ describe('PlayerControls', () => {
     expect(screen.getByText('Nouvelle musique')).toBeDisabled()
   })
 
-  it('hides the Pause/Lecture button before any round has started', () => {
+  it('hides the Pause/Continuer button before any round has started', () => {
     render(<PlayerControls onPlayNext={() => {}} canPlayNext isRoundActive={false} />)
     expect(screen.queryByText('Pause')).not.toBeInTheDocument()
-    expect(screen.queryByText('Lecture')).not.toBeInTheDocument()
+    expect(screen.queryByText('Continuer')).not.toBeInTheDocument()
   })
 
-  it('shows "Pause" while playing and "Lecture" once paused, wiring onTogglePause', () => {
+  it('shows "Pause" while playing and "Continuer" once paused, wiring onTogglePause', () => {
     const onTogglePause = vi.fn()
     const { rerender } = render(
       <PlayerControls onPlayNext={() => {}} onTogglePause={onTogglePause} canPlayNext isRoundActive isPaused={false} />,
@@ -33,6 +33,6 @@ describe('PlayerControls', () => {
     rerender(
       <PlayerControls onPlayNext={() => {}} onTogglePause={onTogglePause} canPlayNext isRoundActive isPaused={true} />,
     )
-    expect(screen.getByText('Lecture')).toBeInTheDocument()
+    expect(screen.getByText('Continuer')).toBeInTheDocument()
   })
 })

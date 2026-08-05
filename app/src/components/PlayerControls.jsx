@@ -8,7 +8,7 @@ export default function PlayerControls({ onPlayNext, onTogglePause, canPlayNext,
       </button>
       {isRoundActive && (
         <button type="button" className="cbt-btn cbt-player-btn--primary" onClick={onTogglePause}>
-          {isPaused ? 'Lecture' : 'Pause'}
+          {isPaused ? 'Continuer' : 'Pause'}
         </button>
       )}
     </div>

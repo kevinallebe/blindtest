@@ -71,7 +71,8 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
 }
 
 // UI transitoire (Phase 5) — le reste de l'écran (Session/Buzz/Révélation) arrive Phases 6-9.
-function GameScreen({ queue, spotifyPlayer }) {
+// Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
+export function GameScreen({ queue, spotifyPlayer }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
   const { deviceId, togglePlay, pause, onPlaybackStateChanged } = spotifyPlayer
 
@@ -122,7 +123,12 @@ function GameScreen({ queue, spotifyPlayer }) {
     togglePlay()
     setIsPaused((wasPaused) => {
       if (wasPaused) {
-        timer.resume()
+        // Le timer est peut-être déjà arrivé à 0 (fin naturelle) : dans ce cas on ne fait que
+        // reprendre la lecture, sans relancer un compte à rebours déjà terminé (sinon onComplete
+        // se redéclenche immédiatement au tick suivant).
+        if (timer.secondsLeft > 0) {
+          timer.resume()
+        }
       } else {
         timer.stop()
       }
