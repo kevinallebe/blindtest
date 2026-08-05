@@ -1,0 +1,128 @@
+.cbt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 56px;
+  background: linear-gradient(180deg, oklch(0.14 0.03 245 / 0.6), transparent);
+}
+
+.cbt-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cbt-header__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 220deg,
+    var(--color-accent-orange),
+    var(--color-accent-gold),
+    var(--color-accent-teal),
+    var(--color-accent-orange)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px oklch(0.15 0.03 240 / 0.5);
+}
+
+.cbt-header__logo span {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-bg-end);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 20px;
+  color: oklch(0.9 0.03 190);
+}
+
+.cbt-header__title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+.cbt-header__subtitle {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.cbt-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cbt-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-pill-bg);
+  border: 1px solid var(--color-pill-border);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cbt-pill__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.cbt-pill--online .cbt-pill__dot {
+  background: var(--color-status-online);
+  box-shadow: 0 0 8px oklch(0.75 0.19 145 / 0.8);
+}
+
+.cbt-pill--offline {
+  color: var(--color-text-dim);
+}
+
+.cbt-pill--offline .cbt-pill__dot {
+  background: var(--color-status-offline);
+}
+
+.cbt-btn {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cbt-btn--outline-orange {
+  border: 2px solid var(--color-accent-orange);
+  background: transparent;
+  color: oklch(0.85 0.13 30);
+}
+
+.cbt-btn--outline-orange:hover {
+  background: oklch(0.72 0.18 30 / 0.15);
+}
+
+.cbt-btn--outline-neutral {
+  border: 2px solid oklch(0.4 0.02 240);
+  background: oklch(0.22 0.02 240 / 0.6);
+  color: var(--color-text);
+}
+
+.cbt-btn--outline-neutral:hover {
+  background: oklch(0.3 0.02 240);
+}

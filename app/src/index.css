@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Manrope:wght@500;600;700;800&display=swap');
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root {
+  --font-heading: 'Baloo 2', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+
+  --color-bg-base: oklch(0.15 0.03 250);
+  --color-bg-mid: oklch(0.19 0.045 235);
+  --color-bg-end: oklch(0.16 0.03 240);
+  --color-glow-warm: oklch(0.32 0.1 35 / 0.55);
+  --color-glow-cool: oklch(0.3 0.09 190 / 0.5);
+
+  --color-text: oklch(0.96 0.01 240);
+  --color-text-muted: oklch(0.72 0.02 240);
+  --color-text-dim: oklch(0.65 0.02 240);
+
+  --color-panel: oklch(0.25 0.035 240);
+  --color-panel-border: oklch(0.38 0.03 240);
+  --color-pill-bg: oklch(0.24 0.03 240 / 0.7);
+  --color-pill-border: oklch(0.35 0.03 240);
+
+  --color-accent-teal: oklch(0.78 0.15 190);
+  --color-accent-teal-2: oklch(0.7 0.13 210);
+  --color-accent-orange: oklch(0.72 0.18 30);
+  --color-accent-orange-2: oklch(0.8 0.16 60);
+  --color-accent-gold: oklch(0.8 0.16 85);
+  --color-status-online: oklch(0.75 0.19 145);
+  --color-status-offline: oklch(0.6 0.02 240);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background:
+    radial-gradient(1200px 700px at 78% -8%, var(--color-glow-warm), transparent 60%),
+    radial-gradient(900px 600px at 8% 105%, var(--color-glow-cool), transparent 60%),
+    linear-gradient(160deg, var(--color-bg-base) 0%, var(--color-bg-mid) 55%, var(--color-bg-end) 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.cbt-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 118px);
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 40px;
+}
