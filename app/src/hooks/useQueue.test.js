@@ -40,6 +40,21 @@ describe('useQueue', () => {
     expect(result.current.error).toMatch(/Connecte-toi/)
   })
 
+  it('surfaces the underlying error message when the fetch fails', async () => {
+    adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
+    getValidAccessToken.mockResolvedValue('token123')
+    spotify.fetchTracksForPlaylists.mockRejectedValue(new Error('spotify_playlist_tracks_failed_403'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const { result } = renderHook(() => useQueue())
+    await act(async () => {
+      await result.current.loadQueue()
+    })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.error).toBe('Le chargement des playlists a échoué (spotify_playlist_tracks_failed_403). Réessaie.')
+  })
+
   it('loads, shuffles and persists the queue on success', async () => {
     adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
     getValidAccessToken.mockResolvedValue('token123')

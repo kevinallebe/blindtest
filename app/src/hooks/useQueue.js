@@ -41,9 +41,10 @@ export function useQueue() {
       setCurrentIndex(0)
       setStats({ playlistCount: playlists.length, tracksLoaded: tracks.length, duplicatesRemoved })
       setStatus('ready')
-    } catch {
+    } catch (err) {
+      console.error('[useQueue] loadQueue failed', err)
       setStatus('error')
-      setError('Le chargement des playlists a échoué. Réessaie.')
+      setError(`Le chargement des playlists a échoué (${err.message}). Réessaie.`)
     }
   }, [])
 
