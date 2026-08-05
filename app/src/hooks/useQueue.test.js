@@ -62,6 +62,7 @@ describe('useQueue', () => {
       tracks: [{ uri: 'a' }, { uri: 'b' }, { uri: 'c' }],
       totalLoaded: 4,
       duplicatesRemoved: 1,
+      failedPlaylistIds: [],
     })
 
     const { result } = renderHook(() => useQueue())
@@ -70,11 +71,54 @@ describe('useQueue', () => {
     })
 
     expect(result.current.status).toBe('ready')
+    expect(result.current.warning).toBeNull()
     expect(result.current.queue).toHaveLength(3)
-    expect(result.current.stats).toEqual({ playlistCount: 1, tracksLoaded: 3, duplicatesRemoved: 1 })
+    expect(result.current.stats).toEqual({ playlistCount: 1, tracksLoaded: 3, duplicatesRemoved: 1, failedPlaylistIds: [] })
     expect(result.current.currentIndex).toBe(0)
     expect(spotify.fetchTracksForPlaylists).toHaveBeenCalledWith('token123', ['abc'])
     expect(JSON.parse(localStorage.getItem('cbt_played_queue'))).toHaveLength(3)
+  })
+
+  it('warns but still loads when some playlists fail (e.g. editorial playlists)', async () => {
+    adminConfig.getPlaylists.mockReturnValue([
+      { id: 'good', url: 'x', name: null },
+      { id: 'editorial', url: 'y', name: null },
+    ])
+    getValidAccessToken.mockResolvedValue('token123')
+    spotify.fetchTracksForPlaylists.mockResolvedValue({
+      tracks: [{ uri: 'a' }],
+      totalLoaded: 1,
+      duplicatesRemoved: 0,
+      failedPlaylistIds: ['editorial'],
+    })
+
+    const { result } = renderHook(() => useQueue())
+    await act(async () => {
+      await result.current.loadQueue()
+    })
+
+    expect(result.current.status).toBe('ready')
+    expect(result.current.queue).toHaveLength(1)
+    expect(result.current.warning).toMatch(/editorial/)
+  })
+
+  it('errors when every playlist fails and nothing could be loaded', async () => {
+    adminConfig.getPlaylists.mockReturnValue([{ id: 'editorial', url: 'y', name: null }])
+    getValidAccessToken.mockResolvedValue('token123')
+    spotify.fetchTracksForPlaylists.mockResolvedValue({
+      tracks: [],
+      totalLoaded: 0,
+      duplicatesRemoved: 0,
+      failedPlaylistIds: ['editorial'],
+    })
+
+    const { result } = renderHook(() => useQueue())
+    await act(async () => {
+      await result.current.loadQueue()
+    })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.error).toMatch(/editorial/)
   })
 
   it('advance() increments currentIndex and marks the queue finished at the end', async () => {
@@ -84,6 +128,7 @@ describe('useQueue', () => {
       tracks: [{ uri: 'a' }, { uri: 'b' }],
       totalLoaded: 2,
       duplicatesRemoved: 0,
+      failedPlaylistIds: [],
     })
 
     const { result } = renderHook(() => useQueue())

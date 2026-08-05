@@ -9,7 +9,13 @@ import {
 import './AdminTab.css'
 
 export default function AdminTab({ queue = {} }) {
-  const { stats = null, status: queueStatus = 'idle', error: queueError = null, loadQueue = () => {} } = queue
+  const {
+    stats = null,
+    status: queueStatus = 'idle',
+    error: queueError = null,
+    warning: queueWarning = null,
+    loadQueue = () => {},
+  } = queue
   const [clientId, setClientId] = useState(() => getSpotifyClientId())
   const [savedClientId, setSavedClientId] = useState(false)
 
@@ -109,6 +115,7 @@ export default function AdminTab({ queue = {} }) {
         </button>
       </div>
       {queueStatus === 'error' && queueError && <p className="cbt-admin-tab__error">{queueError}</p>}
+      {queueWarning && <p className="cbt-admin-tab__warning">{queueWarning}</p>}
     </div>
   )
 }

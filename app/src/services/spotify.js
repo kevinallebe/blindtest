@@ -58,9 +58,22 @@ export function mergeAndDedupeTracks(trackLists) {
   return { tracks, totalLoaded, duplicatesRemoved: totalLoaded - tracks.length }
 }
 
+// Une playlist qui échoue (ex: playlist éditoriale Spotify comme Filtr/Discover Weekly, non
+// accessible via l'API pour les apps tierces même publique) ne doit pas faire échouer les autres.
 export async function fetchTracksForPlaylists(accessToken, playlistIds) {
-  const perPlaylist = await Promise.all(playlistIds.map((id) => fetchPlaylistTracks(accessToken, id)))
-  return mergeAndDedupeTracks(perPlaylist)
+  const results = await Promise.allSettled(playlistIds.map((id) => fetchPlaylistTracks(accessToken, id)))
+
+  const trackLists = []
+  const failedPlaylistIds = []
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      trackLists.push(result.value)
+    } else {
+      failedPlaylistIds.push(playlistIds[index])
+    }
+  })
+
+  return { ...mergeAndDedupeTracks(trackLists), failedPlaylistIds }
 }
 
 // Phase 5 — PUT /me/player/play, préchargement (US-6.4)

@@ -69,6 +69,13 @@
   margin: 10px 0 0;
 }
 
+.cbt-admin-tab__warning {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent-gold);
+  margin: 14px 0 0;
+}
+
 .cbt-admin-tab__error {
   font-size: 13px;
   font-weight: 700;
