@@ -1,1 +1,10 @@
-// Phase 7 — connexion à VITE_SOCKET_URL, écoute buzzedList / reset / tooLate, émission startRound
+import { io } from 'socket.io-client'
+
+let socket = null
+
+export function getSocket() {
+  if (!socket) {
+    socket = io(import.meta.env.VITE_SOCKET_URL)
+  }
+  return socket
+}

@@ -1,0 +1,112 @@
+.cbt-buzz-list {
+  width: 340px;
+  max-width: 100%;
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 24px;
+  padding: 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 12px 30px oklch(0.08 0.03 240 / 0.5);
+  box-sizing: border-box;
+}
+
+.cbt-buzz-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cbt-buzz-list__title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--color-accent-teal);
+}
+
+.cbt-buzz-list__max {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-dim);
+}
+
+.cbt-buzz-list__entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cbt-buzz-list__empty {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+}
+
+.cbt-buzz-entry {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.cbt-buzz-entry--top {
+  background: linear-gradient(90deg, oklch(0.35 0.02 240 / 0.4), transparent);
+  border: 1px solid oklch(0.4 0.02 240);
+}
+
+.cbt-buzz-entry--gold {
+  background: linear-gradient(90deg, oklch(0.32 0.1 85 / 0.35), transparent);
+  border: 1px solid oklch(0.5 0.1 85 / 0.4);
+}
+
+.cbt-buzz-entry--other {
+  background: oklch(0.26 0.02 240 / 0.4);
+  border: 1px solid oklch(0.36 0.02 240);
+}
+
+.cbt-buzz-entry__rank {
+  width: 34px;
+  text-align: center;
+  font-size: 26px;
+}
+
+.cbt-buzz-entry--other .cbt-buzz-entry__rank {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+}
+
+.cbt-buzz-entry__name {
+  flex: 1;
+  font-weight: 800;
+  font-size: 17px;
+}
+
+.cbt-buzz-entry--other .cbt-buzz-entry__name {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+.cbt-buzz-entry__time {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.cbt-buzz-entry--gold .cbt-buzz-entry__time {
+  color: oklch(0.75 0.13 85);
+}
+
+.cbt-buzz-list__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-panel-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+}

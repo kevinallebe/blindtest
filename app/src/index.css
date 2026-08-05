@@ -98,6 +98,15 @@ body {
   max-width: 560px;
 }
 
+.cbt-game-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
 .cbt-stage {
   display: flex;
   flex-direction: column;

@@ -36,6 +36,15 @@ function buildSpotifyPlayer(onStateChangeHolder) {
   }
 }
 
+function buildBuzz(overrides = {}) {
+  return {
+    connected: true,
+    buzzes: [],
+    startRound: vi.fn(),
+    ...overrides,
+  }
+}
+
 async function flushMicrotasks() {
   await Promise.resolve()
   await Promise.resolve()
@@ -60,8 +69,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const onStateChangeHolder = { current: null }
     const queue = buildQueue()
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
 
-    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />)
+    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -69,6 +79,8 @@ describe('GameScreen — playback/timer orchestration', () => {
     })
     expect(queue.advance).toHaveBeenCalledTimes(1)
     expect(spotifyPlayer.activateElement).toHaveBeenCalledTimes(1)
+    // US-9.4 — chaque lancement de manche remet les buzz à zéro pour tous les joueurs
+    expect(buzz.startRound).toHaveBeenCalledTimes(1)
 
     // Confirme la lecture réelle (player_state_changed) -> déclenche le délai 1s puis le timer
     await act(async () => {
@@ -97,8 +109,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const onStateChangeHolder = { current: null }
     const queue = buildQueue()
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
 
-    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />)
+    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -112,6 +125,7 @@ describe('GameScreen — playback/timer orchestration', () => {
       <GameScreen
         queue={buildQueue({ currentTrack: null, isFinished: true, advance: queue.advance, loadQueue: queue.loadQueue })}
         spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
       />,
     )
 
@@ -123,8 +137,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const onStateChangeHolder = { current: null }
     const queue = buildQueue({ queue: [trackA, trackB], currentTrack: trackA })
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
 
-    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />)
+    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
 
     // Lance trackA
     await act(async () => {
@@ -142,6 +157,7 @@ describe('GameScreen — playback/timer orchestration', () => {
       <GameScreen
         queue={buildQueue({ queue: [trackA, trackB], currentTrack: trackB, advance: queue.advance, loadQueue: queue.loadQueue })}
         spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
       />,
     )
 

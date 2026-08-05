@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import BuzzList from './components/BuzzList.jsx'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
 import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
 import TrackInfo from './components/TrackInfo.jsx'
+import { useBuzzSocket } from './hooks/useBuzzSocket.js'
 import { useQueue } from './hooks/useQueue.js'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
 import { clampTimerDuration, useTimer } from './hooks/useTimer.js'
@@ -16,6 +18,7 @@ function App() {
   const spotifyPlayer = useSpotifyPlayer()
   const { status, error, connect } = spotifyPlayer
   const queue = useQueue()
+  const buzz = useBuzzSocket()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
@@ -23,12 +26,12 @@ function App() {
     <>
       <Header
         spotifyConnected={status === 'ready'}
-        buzzerConnected={false}
+        buzzerConnected={buzz.connected}
         onInvite={() => setShowInvite(true)}
         onSettings={() => setShowSettings(true)}
       />
       <main className="cbt-placeholder">
-        <SpotifyAuthGate status={status} error={error} onConnect={connect} queue={queue} spotifyPlayer={spotifyPlayer} />
+        <SpotifyAuthGate status={status} error={error} onConnect={connect} queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} queue={queue} />}
@@ -36,9 +39,9 @@ function App() {
   )
 }
 
-function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
+function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz }) {
   if (status === 'ready') {
-    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} />
+    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />
   }
 
   if (status === 'connecting') {
@@ -72,7 +75,7 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer }) {
 
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
-export function GameScreen({ queue, spotifyPlayer }) {
+export function GameScreen({ queue, spotifyPlayer, buzz }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
   const { deviceId, togglePlay, pause, activateElement, onPlaybackStateChanged } = spotifyPlayer
 
@@ -118,6 +121,8 @@ export function GameScreen({ queue, spotifyPlayer }) {
       setActiveTrack(trackToPlay)
       advance()
       setRoundStage('playing')
+      // US-9.4 — remet les buzz à zéro côté serveur pour tous les joueurs au lancement de la manche.
+      buzz.startRound()
 
       await waitForPlaybackState(
         (state) => state?.paused === false && state?.track_window?.current_track?.uri === trackToPlay.uri,
@@ -197,46 +202,50 @@ export function GameScreen({ queue, spotifyPlayer }) {
   const isRevealed = roundStage === 'revealed'
 
   return (
-    <div className="cbt-stage">
-      <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />
+    <div className="cbt-game-layout">
+      <div className="cbt-stage">
+        <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />
 
-      {!isRevealed && (
-        <>
-          <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />
-          <div className="cbt-stage__duration">
-            <button type="button" onClick={() => changeDuration(-5)} disabled={timer.isRunning}>
-              −
-            </button>
-            <span>Durée : {duration} s</span>
-            <button type="button" onClick={() => changeDuration(5)} disabled={timer.isRunning}>
-              +
+        {!isRevealed && (
+          <>
+            <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />
+            <div className="cbt-stage__duration">
+              <button type="button" onClick={() => changeDuration(-5)} disabled={timer.isRunning}>
+                −
+              </button>
+              <span>Durée : {duration} s</span>
+              <button type="button" onClick={() => changeDuration(5)} disabled={timer.isRunning}>
+                +
+              </button>
+            </div>
+          </>
+        )}
+
+        {isFinished && isRevealed ? (
+          <div className="cbt-auth-gate">
+            <p>Tous les morceaux ont été joués.</p>
+            <button
+              type="button"
+              className="cbt-btn cbt-btn--primary"
+              onClick={loadQueue}
+              disabled={queueStatus === 'loading'}
+            >
+              {queueStatus === 'loading' ? 'Chargement…' : 'Recharger les playlists'}
             </button>
           </div>
-        </>
-      )}
+        ) : (
+          <PlayerControls
+            onPlayNext={handlePlayNext}
+            onTogglePause={handleTogglePause}
+            onReveal={handleReveal}
+            canPlayNext={!timer.isRunning && !isFinished}
+            roundStage={roundStage}
+          />
+        )}
+        {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}
+      </div>
 
-      {isFinished && isRevealed ? (
-        <div className="cbt-auth-gate">
-          <p>Tous les morceaux ont été joués.</p>
-          <button
-            type="button"
-            className="cbt-btn cbt-btn--primary"
-            onClick={loadQueue}
-            disabled={queueStatus === 'loading'}
-          >
-            {queueStatus === 'loading' ? 'Chargement…' : 'Recharger les playlists'}
-          </button>
-        </div>
-      ) : (
-        <PlayerControls
-          onPlayNext={handlePlayNext}
-          onTogglePause={handleTogglePause}
-          onReveal={handleReveal}
-          canPlayNext={!timer.isRunning && !isFinished}
-          roundStage={roundStage}
-        />
-      )}
-      {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}
+      <BuzzList buzzes={buzz.buzzes} />
     </div>
   )
 }
