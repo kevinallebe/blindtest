@@ -197,6 +197,14 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzz.buzzes])
 
+  // US-16.2 — un joueur qui rejoint via le bouton "REJOINDRE" du Buzzer (mode inscription)
+  // apparaît sur les deux scoreboards à 0 pt, sans attendre un vrai buzz.
+  useEffect(() => {
+    if (buzz.joinedList.length === 0) return
+    scores.registerPlayers(buzz.joinedList.map((joined) => joined.name))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buzz.joinedList])
+
   // Réglages > Jeu peut changer le volume pendant une manche : on le répercute immédiatement sur
   // le lecteur, sans attendre le prochain morceau.
   useEffect(() => {

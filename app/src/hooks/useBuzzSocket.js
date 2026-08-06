@@ -4,6 +4,7 @@ import { getSocket } from '../services/socket.js'
 export function useBuzzSocket() {
   const [connected, setConnected] = useState(false)
   const [buzzes, setBuzzes] = useState([])
+  const [joinedList, setJoinedList] = useState([])
   const socketRef = useRef(null)
 
   useEffect(() => {
@@ -14,11 +15,13 @@ export function useBuzzSocket() {
     const handleDisconnect = () => setConnected(false)
     const handleBuzzedList = (list) => setBuzzes(Array.isArray(list) ? list : [])
     const handleReset = () => setBuzzes([])
+    const handleJoinedList = (list) => setJoinedList(Array.isArray(list) ? list : [])
 
     socket.on('connect', handleConnect)
     socket.on('disconnect', handleDisconnect)
     socket.on('buzzedList', handleBuzzedList)
     socket.on('reset', handleReset)
+    socket.on('joinedList', handleJoinedList)
 
     setConnected(socket.connected)
 
@@ -27,6 +30,7 @@ export function useBuzzSocket() {
       socket.off('disconnect', handleDisconnect)
       socket.off('buzzedList', handleBuzzedList)
       socket.off('reset', handleReset)
+      socket.off('joinedList', handleJoinedList)
     }
   }, [])
 
@@ -35,5 +39,10 @@ export function useBuzzSocket() {
     socketRef.current?.emit('startRound')
   }, [])
 
-  return { connected, buzzes, startRound }
+  // US-16.1 — bascule tous les clients Buzzer connectés en mode inscription.
+  const startJoin = useCallback(() => {
+    socketRef.current?.emit('startJoin')
+  }, [])
+
+  return { connected, buzzes, joinedList, startRound, startJoin }
 }

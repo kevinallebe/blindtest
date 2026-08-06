@@ -67,4 +67,26 @@ describe('useBuzzSocket', () => {
 
     expect(fakeSocket.emit).toHaveBeenCalledWith('startRound')
   })
+
+  it('startJoin() emits the startJoin event', () => {
+    const fakeSocket = createFakeSocket()
+    getSocket.mockReturnValue(fakeSocket)
+
+    const { result } = renderHook(() => useBuzzSocket())
+    result.current.startJoin()
+
+    expect(fakeSocket.emit).toHaveBeenCalledWith('startJoin')
+  })
+
+  it('updates joinedList from the joinedList event', () => {
+    const fakeSocket = createFakeSocket()
+    getSocket.mockReturnValue(fakeSocket)
+
+    const { result } = renderHook(() => useBuzzSocket())
+    expect(result.current.joinedList).toEqual([])
+
+    const list = [{ name: 'Marie' }, { name: 'Tom' }]
+    act(() => fakeSocket.trigger('joinedList', list))
+    expect(result.current.joinedList).toEqual(list)
+  })
 })

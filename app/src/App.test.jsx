@@ -42,7 +42,9 @@ function buildBuzz(overrides = {}) {
   return {
     connected: true,
     buzzes: [],
+    joinedList: [],
     startRound: vi.fn(),
+    startJoin: vi.fn(),
     ...overrides,
   }
 }
@@ -641,6 +643,83 @@ describe('GameScreen — playback/timer orchestration', () => {
 
       expect(buzz.startRound).not.toHaveBeenCalled()
       expect(spotifyService.playTrack).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('scores wiring (Epic 13/16)', () => {
+    function buildScores(overrides = {}) {
+      return {
+        roundScores: {},
+        toggleArtist: vi.fn(),
+        toggleTitle: vi.fn(),
+        toggleBoth: vi.fn(),
+        resetRoundScores: vi.fn(),
+        registerPlayers: vi.fn(),
+        ...overrides,
+      }
+    }
+
+    it('registers newly buzzed players on both scoreboards (US-16.4 safety net)', () => {
+      const onStateChangeHolder = { current: null }
+      const scores = buildScores()
+
+      render(
+        <GameScreen
+          queue={buildQueue()}
+          spotifyPlayer={buildSpotifyPlayer(onStateChangeHolder)}
+          buzz={buildBuzz({ buzzes: [{ name: 'Marie-Lou', reactionTime: 620 }] })}
+          settings={buildSettings()}
+          scores={scores}
+          showToast={showToast}
+        />,
+      )
+
+      expect(scores.registerPlayers).toHaveBeenCalledWith(['Marie-Lou'])
+    })
+
+    it('registers players who joined via the Buzzer registration mode (US-16.2)', () => {
+      const onStateChangeHolder = { current: null }
+      const scores = buildScores()
+
+      render(
+        <GameScreen
+          queue={buildQueue()}
+          spotifyPlayer={buildSpotifyPlayer(onStateChangeHolder)}
+          buzz={buildBuzz({ joinedList: [{ name: 'Nico' }] })}
+          settings={buildSettings()}
+          scores={scores}
+          showToast={showToast}
+        />,
+      )
+
+      expect(scores.registerPlayers).toHaveBeenCalledWith(['Nico'])
+    })
+
+    it('resets the round toggles whenever a new round starts (US-13.2)', async () => {
+      const onStateChangeHolder = { current: null }
+      const scores = buildScores()
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen
+          queue={buildQueue()}
+          spotifyPlayer={buildSpotifyPlayer(onStateChangeHolder)}
+          buzz={buzz}
+          settings={buildSettings()}
+          scores={scores}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+      expect(scores.resetRoundScores).toHaveBeenCalledTimes(1)
+
+      fireEvent.keyDown(window, { key: 'b' })
+      expect(buzz.startRound).toHaveBeenCalledTimes(2)
+      expect(scores.resetRoundScores).toHaveBeenCalledTimes(2)
     })
   })
 })
