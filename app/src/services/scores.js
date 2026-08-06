@@ -1,5 +1,9 @@
-// Epic 13-16 — persistance des scoreboards Partie (reset au rechargement des playlists) et
-// Général (persiste toute la soirée, reset manuel uniquement). Voir SPEC_SCORES.md §9.
+// Epic 13-16 — persistance des scoreboards Partie et Général. Les deux ne se réinitialisent que
+// sur action explicite de l'animateur (boutons dédiés dans ScoreBoardModal) — jamais
+// automatiquement au rechargement des playlists, pour ne pas menacer une partie en cours en cas
+// de souci de connexion Spotify. Voir SPEC_SCORES.md §9 (le reset auto au rechargement y était
+// prévu à l'origine, ajusté depuis suite à un incident réel : lecture cassée, playlists à
+// recharger, mais aucune envie de perdre la partie pour autant).
 const OVERALL_KEY = 'cbt_scores_overall'
 const PARTY_KEY = 'cbt_scores_party'
 

@@ -58,6 +58,15 @@ export default function PartyScoresTab({ scores, buzz }) {
     }
   }
 
+  // Séparé du (re)chargement des playlists — recharger pour corriger un souci de connexion ne
+  // doit jamais menacer la partie en cours. Reset uniquement sur action explicite, comme le
+  // Général (US-14.3).
+  function handleResetParty() {
+    if (window.confirm('Réinitialiser la partie en cours ? Cette action est irréversible.')) {
+      scores.resetParty()
+    }
+  }
+
   return (
     <div className="cbt-party-tab">
       <div className="cbt-party-tab__header">
@@ -79,6 +88,14 @@ export default function PartyScoresTab({ scores, buzz }) {
           >
             <i className="bi bi-signpost-split" />
             Dissoudre les équipes
+          </button>
+          <button
+            type="button"
+            className="cbt-pill-btn cbt-pill-btn--orange"
+            onClick={handleResetParty}
+            disabled={party.players.length === 0}
+          >
+            Réinitialiser la partie
           </button>
         </div>
       </div>
@@ -126,7 +143,10 @@ export default function PartyScoresTab({ scores, buzz }) {
         )}
       </div>
 
-      <div className="cbt-party-tab__footer">Remis à zéro automatiquement au rechargement des playlists.</div>
+      <div className="cbt-party-tab__footer">
+        Recharger les playlists ne touche pas à cette partie — utilise "Réinitialiser la partie"
+        pour repartir de zéro.
+      </div>
     </div>
   )
 }

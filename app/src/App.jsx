@@ -51,16 +51,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showScores, setShowScores] = useState(false)
 
-  // US-14.2 — un rechargement de playlists (1er chargement, Réglages > Admin, ou fin de queue)
-  // marque le début d'une nouvelle partie : le scoreboard Partie repart de zéro.
-  const queueWithScoreReset = {
-    ...queue,
-    loadQueue: () => {
-      scores.resetParty()
-      queue.loadQueue()
-    },
-  }
-
   return (
     <>
       <Header
@@ -77,7 +67,7 @@ function App() {
           status={status}
           error={error}
           onConnect={connect}
-          queue={queueWithScoreReset}
+          queue={queue}
           spotifyPlayer={spotifyPlayer}
           buzz={buzz}
           settings={settings}
@@ -90,7 +80,7 @@ function App() {
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
-          queue={queueWithScoreReset}
+          queue={queue}
           settings={settings}
           branding={branding}
           spotify={spotifyPlayer}

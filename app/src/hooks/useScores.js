@@ -126,7 +126,9 @@ export function useScores() {
     [setParty],
   )
 
-  // US-14.2 — nouvelle partie, nouveau tableau : appelé à chaque (re)chargement des playlists.
+  // Action explicite ("Réinitialiser la partie", PartyScoresTab) — délibérément pas liée au
+  // rechargement des playlists : recharger pour corriger un souci de connexion Spotify ne doit
+  // jamais menacer la partie en cours.
   const resetParty = useCallback(() => {
     setParty({ players: [], teams: [] })
   }, [setParty])

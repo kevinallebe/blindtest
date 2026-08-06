@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PartyScoresTab from './PartyScoresTab.jsx'
 
 function buildScores(overrides = {}) {
@@ -9,6 +9,7 @@ function buildScores(overrides = {}) {
     leaveTeam: vi.fn(),
     mergeIntoTeam: vi.fn(),
     renameTeam: vi.fn(),
+    resetParty: vi.fn(),
     ...overrides,
   }
 }
@@ -149,6 +150,39 @@ describe('PartyScoresTab', () => {
     rerender(<PartyScoresTab scores={withTeam} buzz={{}} />)
     fireEvent.click(screen.getByText('Dissoudre les équipes'))
     expect(withTeam.dissolveTeams).toHaveBeenCalledTimes(1)
+  })
+
+  describe('"Réinitialiser la partie" — kept separate from reloading playlists', () => {
+    beforeEach(() => {
+      vi.spyOn(window, 'confirm')
+    })
+
+    afterEach(() => {
+      window.confirm.mockRestore()
+    })
+
+    it('is disabled when there are no players yet', () => {
+      render(<PartyScoresTab scores={buildScores()} buzz={{}} />)
+      expect(screen.getByText('Réinitialiser la partie')).toBeDisabled()
+    })
+
+    it('resets only after confirmation', () => {
+      const scores = buildScores({ party: { players: [{ name: 'Marie', points: 1 }], teams: [] } })
+      render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+      window.confirm.mockReturnValue(false)
+      fireEvent.click(screen.getByText('Réinitialiser la partie'))
+      expect(scores.resetParty).not.toHaveBeenCalled()
+
+      window.confirm.mockReturnValue(true)
+      fireEvent.click(screen.getByText('Réinitialiser la partie'))
+      expect(scores.resetParty).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('does not tie reloading playlists to the party — the footer says so', () => {
+    render(<PartyScoresTab scores={buildScores()} buzz={{}} />)
+    expect(screen.getByText(/Recharger les playlists ne touche pas à cette partie/)).toBeInTheDocument()
   })
 
   it('calls buzz.startJoin when "Ouvrir les inscriptions" is clicked', () => {
