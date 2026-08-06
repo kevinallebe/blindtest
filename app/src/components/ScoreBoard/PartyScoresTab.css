@@ -71,10 +71,34 @@
   color: var(--color-text-muted);
 }
 
+/* US-15.1 — feedback de glisser-déposer (screen 03) : source semi-transparente en pointillés,
+   cible entourée de teal avec un libellé explicite. */
+.cbt-party-row--ghost {
+  opacity: 0.45;
+  border: 1.5px dashed oklch(0.5 0.02 240);
+}
+
+.cbt-party-row--drop-target {
+  border-color: var(--color-accent-teal);
+  background: oklch(0.78 0.15 190 / 0.15);
+  box-shadow: 0 0 0 4px oklch(0.78 0.15 190 / 0.12);
+}
+
+.cbt-party-row__drop-label {
+  font-size: 12px;
+  color: var(--color-accent-teal);
+  font-weight: 700;
+}
+
 .cbt-team-card {
   border: 1.5px solid var(--color-panel-border);
   border-radius: 18px;
   padding: 16px;
+}
+
+.cbt-team-card--drop-target {
+  border-color: var(--color-accent-teal);
+  box-shadow: 0 0 0 4px oklch(0.78 0.15 190 / 0.12);
 }
 
 .cbt-team-card__header {
@@ -99,6 +123,13 @@
   border-radius: 999px;
   padding: 5px 14px;
   font-size: 14px;
+}
+
+.cbt-team-card__drop-label {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-accent-teal);
+  font-weight: 700;
 }
 
 .cbt-team-card__members {

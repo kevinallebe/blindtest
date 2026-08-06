@@ -7,8 +7,14 @@ function buildScores(overrides = {}) {
     party: { players: [], teams: [] },
     dissolveTeams: vi.fn(),
     leaveTeam: vi.fn(),
+    mergeIntoTeam: vi.fn(),
     ...overrides,
   }
+}
+
+// jsdom ne fournit pas DataTransfer — un mock minimal suffit pour simuler le drag & drop natif.
+function makeDataTransfer() {
+  return { setData: vi.fn(), dropEffect: null, effectAllowed: null }
 }
 
 describe('PartyScoresTab', () => {
@@ -76,5 +82,68 @@ describe('PartyScoresTab', () => {
 
     fireEvent.click(screen.getByText('Ouvrir les inscriptions'))
     expect(startJoin).toHaveBeenCalledTimes(1)
+  })
+
+  describe('drag & drop team formation (US-15.1, screen 03)', () => {
+    it('merges two individuals when one is dropped on the other, with ghost/target styling mid-drag', () => {
+      const scores = buildScores({
+        party: {
+          players: [
+            { name: 'Marie', points: 0.5 },
+            { name: 'Tom', points: 1 },
+          ],
+          teams: [],
+        },
+      })
+      render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+      const sourceRow = screen.getByText('Marie').closest('.cbt-party-row')
+      const targetRow = screen.getByText('Tom').closest('.cbt-party-row')
+
+      fireEvent.dragStart(sourceRow, { dataTransfer: makeDataTransfer() })
+      expect(sourceRow).toHaveClass('cbt-party-row--ghost')
+
+      fireEvent.dragOver(targetRow, { dataTransfer: makeDataTransfer() })
+      expect(targetRow).toHaveClass('cbt-party-row--drop-target')
+      expect(screen.getByText('Déposer pour fusionner')).toBeInTheDocument()
+
+      fireEvent.drop(targetRow, { dataTransfer: makeDataTransfer() })
+      expect(scores.mergeIntoTeam).toHaveBeenCalledWith('Marie', { type: 'player', name: 'Tom' })
+    })
+
+    it('adds a dropped individual to an existing team card', () => {
+      const scores = buildScores({
+        party: {
+          players: [
+            { name: 'Marie', points: 0.5 },
+            { name: 'Tom', points: 1 },
+            { name: 'Léa', points: 0 },
+          ],
+          teams: [{ id: 't1', memberNames: ['Marie', 'Tom'] }],
+        },
+      })
+      render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+      const sourceRow = screen.getByText('Léa').closest('.cbt-party-row')
+      const teamCard = screen.getByText('Marie & Tom').closest('.cbt-team-card')
+
+      fireEvent.dragStart(sourceRow, { dataTransfer: makeDataTransfer() })
+      fireEvent.dragOver(teamCard, { dataTransfer: makeDataTransfer() })
+      expect(teamCard).toHaveClass('cbt-team-card--drop-target')
+
+      fireEvent.drop(teamCard, { dataTransfer: makeDataTransfer() })
+      expect(scores.mergeIntoTeam).toHaveBeenCalledWith('Léa', { type: 'team', teamId: 't1' })
+    })
+
+    it('does not treat dropping a row onto itself as a merge target', () => {
+      const scores = buildScores({ party: { players: [{ name: 'Marie', points: 0 }], teams: [] } })
+      render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+      const row = screen.getByText('Marie').closest('.cbt-party-row')
+      fireEvent.dragStart(row, { dataTransfer: makeDataTransfer() })
+      fireEvent.dragOver(row, { dataTransfer: makeDataTransfer() })
+
+      expect(row).not.toHaveClass('cbt-party-row--drop-target')
+    })
   })
 })
