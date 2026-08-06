@@ -283,7 +283,9 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP
       } else if (err.code === 'no_active_device') {
         setPlaybackError('Aucun appareil Spotify actif — réessaie dans quelques secondes.')
       } else if (err.code === 'forbidden') {
-        setPlaybackError("Ton compte Spotify n'a pas les autorisations nécessaires pour lancer la lecture.")
+        // err.message porte la raison précise renvoyée par Spotify quand disponible (voir
+        // SpotifyApiError) — bien plus utile pour diagnostiquer qu'un message générique fixe.
+        setPlaybackError(err.message || "Ton compte Spotify n'a pas les autorisations nécessaires pour lancer la lecture.")
       } else {
         setPlaybackError("La lecture a échoué — vérifie qu'un appareil Spotify actif est disponible.")
       }

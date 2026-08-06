@@ -462,11 +462,39 @@ describe('GameScreen — playback/timer orchestration', () => {
       expect(screen.getByText(/Aucun appareil Spotify actif/)).toBeInTheDocument()
     })
 
-    it('shows a specific message for a 403 (missing permissions)', async () => {
+    it('shows Spotify\'s own detail message for a 403 (missing permissions) when available', async () => {
       const onStateChangeHolder = { current: null }
       const queue = buildQueue()
       const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
-      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error('403'), { code: 'forbidden' }))
+      spotifyService.playTrack.mockRejectedValueOnce(
+        Object.assign(new Error("Spotify a refusé l'action (Player command failed: Premium required — PREMIUM_REQUIRED)."), {
+          code: 'forbidden',
+        }),
+      )
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buildBuzz()}
+          settings={buildSettings()}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+
+      expect(screen.getByText(/PREMIUM_REQUIRED/)).toBeInTheDocument()
+    })
+
+    it('falls back to a generic message for a 403 without a detailed reason', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error(''), { code: 'forbidden' }))
 
       render(
         <GameScreen

@@ -1,10 +1,15 @@
 import { clearToken, getValidAccessToken, refreshAccessToken } from '../spotifyToken.js'
 
 export class SpotifyApiError extends Error {
-  constructor(code, message, status) {
+  constructor(code, message, status, reason) {
     super(message ?? code)
     this.code = code
     this.status = status
+    // Raison brute renvoyée par Spotify (ex. PREMIUM_REQUIRED, RESTRICTION_VIOLATED) — voir
+    // https://developer.spotify.com/documentation/web-api/concepts/api-calls#response-status-codes.
+    // Un 403 générique masque souvent la vraie cause (device restreint, app encore en
+    // Development Mode avec un compte non ajouté aux utilisateurs autorisés, etc.).
+    this.reason = reason ?? null
   }
 }
 
@@ -42,10 +47,25 @@ async function spotifyFetch(url, options = {}, { retryOn401 = true } = {}) {
   }
 
   if (response.status === 403) {
+    // Le corps d'un 403 Spotify contient en général { error: { message, reason } } — sans ça on ne
+    // fait que deviner la cause (token/scope, compte non-Premium, app en Development Mode avec un
+    // compte non whitelisté, etc.). Best-effort : le corps n'est pas toujours du JSON exploitable.
+    let apiMessage = null
+    let reason = null
+    try {
+      const body = await response.json()
+      apiMessage = body?.error?.message ?? null
+      reason = body?.error?.reason ?? null
+    } catch {
+      // corps vide/non-JSON — pas d'info supplémentaire à en tirer
+    }
     throw new SpotifyApiError(
       'forbidden',
-      "Ton compte Spotify n'a pas les autorisations nécessaires pour cette action.",
+      apiMessage
+        ? `Spotify a refusé l'action (${apiMessage}${reason ? ` — ${reason}` : ''}).`
+        : "Ton compte Spotify n'a pas les autorisations nécessaires pour cette action.",
       403,
+      reason,
     )
   }
 

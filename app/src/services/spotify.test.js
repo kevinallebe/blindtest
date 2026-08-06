@@ -153,10 +153,35 @@ describe('spotifyFetch (via fetchMe) — Epic 12 error handling', () => {
     expect(clearToken).toHaveBeenCalled()
   })
 
-  it('throws a distinct forbidden error on a 403', async () => {
+  it('throws a distinct forbidden error on a 403, falling back to a generic message when the body has no detail', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ status: 403, ok: false }))
 
-    await expect(fetchMe()).rejects.toMatchObject({ code: 'forbidden', status: 403 })
+    await expect(fetchMe()).rejects.toMatchObject({
+      code: 'forbidden',
+      status: 403,
+      reason: null,
+      message: "Ton compte Spotify n'a pas les autorisations nécessaires pour cette action.",
+    })
+  })
+
+  it('surfaces the message/reason Spotify sends in a 403 response body, when present', async () => {
+    // Cause fréquente pour une app Spotify perso : encore en "Development Mode", avec le compte
+    // connecté absent de la liste des utilisateurs autorisés du tableau de bord développeur.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 403,
+        ok: false,
+        json: () =>
+          Promise.resolve({ error: { status: 403, message: 'Player command failed: Restricted device', reason: 'PREMIUM_REQUIRED' } }),
+      }),
+    )
+
+    await expect(fetchMe()).rejects.toMatchObject({
+      code: 'forbidden',
+      reason: 'PREMIUM_REQUIRED',
+      message: "Spotify a refusé l'action (Player command failed: Restricted device — PREMIUM_REQUIRED).",
+    })
   })
 
   it('throws a distinct network_error when fetch itself fails (offline)', async () => {
@@ -168,11 +193,15 @@ describe('spotifyFetch (via fetchMe) — Epic 12 error handling', () => {
     await expect(fetchMe()).rejects.toMatchObject({ code: 'network_error' })
   })
 
-  it('SpotifyApiError instances carry a code and an optional status', () => {
+  it('SpotifyApiError instances carry a code, an optional status, and an optional reason', () => {
     const err = new SpotifyApiError('http_error', 'boom', 500)
     expect(err).toBeInstanceOf(Error)
     expect(err.code).toBe('http_error')
     expect(err.status).toBe(500)
     expect(err.message).toBe('boom')
+    expect(err.reason).toBeNull()
+
+    const withReason = new SpotifyApiError('forbidden', 'nope', 403, 'PREMIUM_REQUIRED')
+    expect(withReason.reason).toBe('PREMIUM_REQUIRED')
   })
 })
