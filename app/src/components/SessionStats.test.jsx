@@ -25,8 +25,22 @@ describe('SessionStats', () => {
   it('falls back to em dashes and the queue length when no stats were captured this session', () => {
     render(<SessionStats stats={null} totalTracks={12} currentIndex={0} settings={buildSettings()} />)
 
-    expect(screen.getAllByText('—')).toHaveLength(2)
+    expect(screen.getAllByText('—')).toHaveLength(3)
     expect(screen.getByText('12')).toBeInTheDocument()
+  })
+
+  it('shows how many already-played tracks were excluded on this load', () => {
+    render(
+      <SessionStats
+        stats={{ playlistCount: 2, tracksLoaded: 15, duplicatesRemoved: 0, playedExcluded: 15 }}
+        totalTracks={30}
+        currentIndex={15}
+        settings={buildSettings()}
+      />,
+    )
+
+    expect(screen.getByText('Déjà joués (exclus)')).toBeInTheDocument()
+    expect(screen.getByText('Manche 16 / 30')).toBeInTheDocument()
   })
 
   it('shows the current round out of the total, one-indexed', () => {

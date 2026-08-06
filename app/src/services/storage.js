@@ -1,6 +1,10 @@
 // Phase 4 — persistance de la queue/currentIndex (US-5.2).
 const QUEUE_KEY = 'cbt_played_queue'
 const CURRENT_INDEX_KEY = 'cbt_current_index'
+// URIs des morceaux déjà joués cette partie, indépendamment de la queue en cours — survit à un
+// "Recharger les playlists" (contrairement à QUEUE_KEY, remplacé à chaque chargement) pour ne
+// jamais rejouer un morceau déjà passé et garder la progression de la manche intacte.
+const PLAYED_TRACK_URIS_KEY = 'cbt_played_track_uris'
 const TIMER_DURATION_KEY = 'cbt_timer_duration'
 const VOLUME_KEY = 'cbt_volume'
 const REVEAL_MODE_KEY = 'cbt_reveal_mode'
@@ -34,6 +38,30 @@ export function persistQueueState(queue, currentIndex) {
 export function clearQueueState() {
   localStorage.removeItem(QUEUE_KEY)
   localStorage.removeItem(CURRENT_INDEX_KEY)
+}
+
+export function getStoredPlayedTrackUris() {
+  const raw = localStorage.getItem(PLAYED_TRACK_URIS_KEY)
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+// Retourne la liste à jour (idempotent — un URI déjà présent n'est pas dupliqué).
+export function addStoredPlayedTrackUri(uri) {
+  const current = getStoredPlayedTrackUris()
+  if (current.includes(uri)) return current
+  const next = [...current, uri]
+  localStorage.setItem(PLAYED_TRACK_URIS_KEY, JSON.stringify(next))
+  return next
+}
+
+export function clearStoredPlayedTrackUris() {
+  localStorage.removeItem(PLAYED_TRACK_URIS_KEY)
 }
 
 export function getStoredTimerDuration() {

@@ -14,6 +14,7 @@ export default function SessionStats({ stats, totalTracks, currentIndex, setting
           <StatRow label="Playlists chargées" value={stats?.playlistCount ?? '—'} />
           <StatRow label="Morceaux chargés" value={stats?.tracksLoaded ?? totalTracks} />
           <StatRow label="Doublons retirés" value={stats?.duplicatesRemoved ?? '—'} />
+          <StatRow label="Déjà joués (exclus)" value={stats?.playedExcluded ?? '—'} />
         </div>
       </div>
 

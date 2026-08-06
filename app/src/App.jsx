@@ -51,6 +51,17 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showScores, setShowScores] = useState(false)
 
+  // "Réinitialiser la partie" (PartyScoresTab) remet aussi à zéro l'historique des morceaux
+  // joués — les deux représentent la même intention ("repartir de zéro ce soir"). Objet à part,
+  // seulement pour la modale : ne touche pas au `scores` utilisé par BuzzList/GameScreen.
+  const scoresForModal = {
+    ...scores,
+    resetParty: () => {
+      scores.resetParty()
+      queue.clearPlayedTracks()
+    },
+  }
+
   return (
     <>
       <Header
@@ -86,7 +97,7 @@ function App() {
           spotify={spotifyPlayer}
         />
       )}
-      {showScores && <ScoreBoardModal onClose={() => setShowScores(false)} scores={scores} buzz={buzz} />}
+      {showScores && <ScoreBoardModal onClose={() => setShowScores(false)} scores={scoresForModal} buzz={buzz} />}
       <Toast message={toast.message} onDismiss={toast.dismissToast} />
     </>
   )
@@ -147,6 +158,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP
     status: queueStatus,
     error: queueError,
     authRequired: queueAuthRequired,
+    playedCount = 0,
     loadQueue,
     advance,
     currentTrack,
@@ -381,9 +393,20 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP
     )
   }
 
+  // playedCount est cumulatif sur toute la partie (survit aux rechargements, voir useQueue) ;
+  // `tracks` ne contient que les morceaux du chargement actuel (jamais ceux déjà joués, exclus
+  // au chargement). playedCount - currentIndex = combien ont été joués AVANT ce chargement-ci,
+  // ce qui permet de reconstituer une progression totale stable même après un rechargement.
+  const playedBeforeCurrentLoad = playedCount - currentIndex
+
   return (
     <div className="cbt-game-layout">
-      <SessionStats stats={queueStats} totalTracks={tracks.length} currentIndex={currentIndex} settings={settings} />
+      <SessionStats
+        stats={queueStats}
+        totalTracks={playedBeforeCurrentLoad + tracks.length}
+        currentIndex={playedCount}
+        settings={settings}
+      />
 
       <div className="cbt-stage">
         <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />

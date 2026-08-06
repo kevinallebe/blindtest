@@ -91,7 +91,13 @@ describe('useQueue', () => {
     expect(result.current.status).toBe('ready')
     expect(result.current.warning).toBeNull()
     expect(result.current.queue).toHaveLength(3)
-    expect(result.current.stats).toEqual({ playlistCount: 1, tracksLoaded: 3, duplicatesRemoved: 1, failedPlaylistIds: [] })
+    expect(result.current.stats).toEqual({
+      playlistCount: 1,
+      tracksLoaded: 3,
+      duplicatesRemoved: 1,
+      failedPlaylistIds: [],
+      playedExcluded: 0,
+    })
     expect(result.current.currentIndex).toBe(0)
     expect(spotify.fetchTracksForPlaylists).toHaveBeenCalledWith(['abc'])
     expect(JSON.parse(localStorage.getItem('cbt_played_queue'))).toHaveLength(3)
@@ -174,5 +180,92 @@ describe('useQueue', () => {
     expect(result.current.queue).toHaveLength(2)
     expect(result.current.currentIndex).toBe(1)
     expect(result.current.currentTrack).toEqual({ uri: 'b' })
+  })
+
+  describe('played track history across reloads', () => {
+    it('advance() records the just-launched track as played and bumps playedCount', async () => {
+      adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
+      getValidAccessToken.mockResolvedValue('token123')
+      spotify.fetchTracksForPlaylists.mockResolvedValue({
+        tracks: [{ uri: 'a' }, { uri: 'b' }],
+        totalLoaded: 2,
+        duplicatesRemoved: 0,
+        failedPlaylistIds: [],
+      })
+
+      const { result } = renderHook(() => useQueue())
+      await act(async () => {
+        await result.current.loadQueue()
+      })
+      expect(result.current.playedCount).toBe(0)
+      // fisherYatesShuffle randomise l'ordre — on lit le morceau réellement en position 0/1
+      // plutôt que de supposer l'ordre d'entrée ['a', 'b'].
+      const [firstUri, secondUri] = result.current.queue.map((track) => track.uri)
+
+      act(() => result.current.advance())
+      expect(result.current.playedCount).toBe(1)
+      expect(JSON.parse(localStorage.getItem('cbt_played_track_uris'))).toEqual([firstUri])
+
+      act(() => result.current.advance())
+      expect(result.current.playedCount).toBe(2)
+      expect(JSON.parse(localStorage.getItem('cbt_played_track_uris'))).toEqual([firstUri, secondUri])
+    })
+
+    it('excludes already-played URIs from a reload instead of replaying them', async () => {
+      localStorage.setItem('cbt_played_track_uris', JSON.stringify(['a']))
+      adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
+      getValidAccessToken.mockResolvedValue('token123')
+      spotify.fetchTracksForPlaylists.mockResolvedValue({
+        tracks: [{ uri: 'a' }, { uri: 'b' }, { uri: 'c' }],
+        totalLoaded: 3,
+        duplicatesRemoved: 0,
+        failedPlaylistIds: [],
+      })
+
+      const { result } = renderHook(() => useQueue())
+      await act(async () => {
+        await result.current.loadQueue()
+      })
+
+      expect(result.current.queue.map((track) => track.uri).sort()).toEqual(['b', 'c'])
+      expect(result.current.stats.playedExcluded).toBe(1)
+      expect(result.current.playedCount).toBe(1)
+    })
+
+    it('errors instead of replaying when every fetched track has already been played', async () => {
+      localStorage.setItem('cbt_played_track_uris', JSON.stringify(['a', 'b']))
+      adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
+      getValidAccessToken.mockResolvedValue('token123')
+      spotify.fetchTracksForPlaylists.mockResolvedValue({
+        tracks: [{ uri: 'a' }, { uri: 'b' }],
+        totalLoaded: 2,
+        duplicatesRemoved: 0,
+        failedPlaylistIds: [],
+      })
+
+      const { result } = renderHook(() => useQueue())
+      await act(async () => {
+        await result.current.loadQueue()
+      })
+
+      expect(result.current.status).toBe('error')
+      expect(result.current.error).toMatch(/déjà été joués/)
+    })
+
+    it('clearPlayedTracks() resets the counter and the persisted history', async () => {
+      localStorage.setItem('cbt_played_track_uris', JSON.stringify(['a', 'b']))
+      const { result } = renderHook(() => useQueue())
+      expect(result.current.playedCount).toBe(2)
+
+      act(() => result.current.clearPlayedTracks())
+      expect(result.current.playedCount).toBe(0)
+      expect(localStorage.getItem('cbt_played_track_uris')).toBeNull()
+    })
+
+    it('hydrates playedCount from localStorage on mount', () => {
+      localStorage.setItem('cbt_played_track_uris', JSON.stringify(['a', 'b', 'c']))
+      const { result } = renderHook(() => useQueue())
+      expect(result.current.playedCount).toBe(3)
+    })
   })
 })

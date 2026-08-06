@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  addStoredPlayedTrackUri,
   clearQueueState,
+  clearStoredPlayedTrackUris,
   getStoredAnswerTimerDuration,
   getStoredCurrentIndex,
+  getStoredPlayedTrackUris,
   getStoredQueue,
   getStoredRevealMode,
   getStoredTimerDuration,
@@ -41,6 +44,35 @@ describe('queue persistence', () => {
   it('ignores corrupted JSON gracefully', () => {
     localStorage.setItem('cbt_played_queue', '{not json')
     expect(getStoredQueue()).toBeNull()
+  })
+})
+
+describe('played track URIs persistence', () => {
+  it('defaults to an empty list', () => {
+    expect(getStoredPlayedTrackUris()).toEqual([])
+  })
+
+  it('adds a URI and returns the updated list', () => {
+    const next = addStoredPlayedTrackUri('spotify:track:a')
+    expect(next).toEqual(['spotify:track:a'])
+    expect(getStoredPlayedTrackUris()).toEqual(['spotify:track:a'])
+  })
+
+  it('does not duplicate a URI already recorded', () => {
+    addStoredPlayedTrackUri('spotify:track:a')
+    const next = addStoredPlayedTrackUri('spotify:track:a')
+    expect(next).toEqual(['spotify:track:a'])
+  })
+
+  it('clears the stored list', () => {
+    addStoredPlayedTrackUri('spotify:track:a')
+    clearStoredPlayedTrackUris()
+    expect(getStoredPlayedTrackUris()).toEqual([])
+  })
+
+  it('ignores corrupted JSON gracefully', () => {
+    localStorage.setItem('cbt_played_track_uris', '{not json')
+    expect(getStoredPlayedTrackUris()).toEqual([])
   })
 })
 

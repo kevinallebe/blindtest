@@ -1,7 +1,14 @@
 import { useCallback, useState } from 'react'
 import { getPlaylists } from '../services/adminConfig.js'
-import { getStoredCurrentIndex, getStoredQueue, persistQueueState } from '../services/storage.js'
 import { fetchTracksForPlaylists } from '../services/spotify.js'
+import {
+  addStoredPlayedTrackUri,
+  clearStoredPlayedTrackUris,
+  getStoredCurrentIndex,
+  getStoredPlayedTrackUris,
+  getStoredQueue,
+  persistQueueState,
+} from '../services/storage.js'
 import { getValidAccessToken } from '../spotifyToken.js'
 import { fisherYatesShuffle } from '../utils/shuffle.js'
 
@@ -17,6 +24,9 @@ export function useQueue() {
   const [warning, setWarning] = useState(null)
   const [stats, setStats] = useState(null)
   const [authRequired, setAuthRequired] = useState(false)
+  // Total de morceaux joués cette partie, tous chargements confondus — persiste à travers un
+  // "Recharger les playlists" (contrairement à `queue`, entièrement remplacée à chaque chargement).
+  const [playedCount, setPlayedCount] = useState(() => getStoredPlayedTrackUris().length)
 
   const loadQueue = useCallback(async () => {
     setStatus('loading')
@@ -53,11 +63,31 @@ export function useQueue() {
         return
       }
 
-      const shuffled = fisherYatesShuffle(tracks)
+      // Ne jamais rejouer un morceau déjà passé cette partie, y compris après un rechargement
+      // (playlist modifiée, retry suite à un souci Spotify...).
+      const playedUris = new Set(getStoredPlayedTrackUris())
+      const unplayedTracks = tracks.filter((track) => !playedUris.has(track.uri))
+      const playedExcluded = tracks.length - unplayedTracks.length
+
+      if (unplayedTracks.length === 0) {
+        setStatus('error')
+        setError(
+          'Tous les morceaux des playlists configurées ont déjà été joués pendant cette partie — ajoute de nouvelles playlists, ou réinitialise la partie (Scores > Partie) pour rejouer depuis le début.',
+        )
+        return
+      }
+
+      const shuffled = fisherYatesShuffle(unplayedTracks)
       persistQueueState(shuffled, 0)
       setQueue(shuffled)
       setCurrentIndex(0)
-      setStats({ playlistCount: playlists.length, tracksLoaded: tracks.length, duplicatesRemoved, failedPlaylistIds })
+      setStats({
+        playlistCount: playlists.length,
+        tracksLoaded: unplayedTracks.length,
+        duplicatesRemoved,
+        failedPlaylistIds,
+        playedExcluded,
+      })
       setStatus('ready')
       setWarning(failedPlaylistIds.length > 0 ? failedPlaylistsMessage(failedPlaylistIds) : null)
     } catch (err) {
@@ -73,12 +103,21 @@ export function useQueue() {
   }, [])
 
   const advance = useCallback(() => {
-    setCurrentIndex((index) => {
-      const next = index + 1
-      persistQueueState(queue, next)
-      return next
-    })
-  }, [queue])
+    const playedTrack = queue[currentIndex]
+    if (playedTrack?.uri) {
+      setPlayedCount(addStoredPlayedTrackUri(playedTrack.uri).length)
+    }
+    const next = currentIndex + 1
+    persistQueueState(queue, next)
+    setCurrentIndex(next)
+  }, [queue, currentIndex])
+
+  // Action explicite uniquement (voir PartyScoresTab "Réinitialiser la partie") — jamais
+  // automatique, pour ne pas perdre l'historique de lecture sur un simple rechargement.
+  const clearPlayedTracks = useCallback(() => {
+    clearStoredPlayedTrackUris()
+    setPlayedCount(0)
+  }, [])
 
   return {
     queue,
@@ -90,7 +129,9 @@ export function useQueue() {
     warning,
     stats,
     authRequired,
+    playedCount,
     loadQueue,
     advance,
+    clearPlayedTracks,
   }
 }
