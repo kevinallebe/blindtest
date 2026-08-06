@@ -44,7 +44,7 @@ export function useSpotifyPlayer() {
     try {
       const Spotify = await loadSpotifySdk()
       const player = new Spotify.Player({
-        name: 'Caribbean BlindTest',
+        name: 'Oli & Kev Blindtest',
         volume: getStoredVolume() / 100,
         getOAuthToken: async (cb) => {
           const token = await getValidAccessToken()

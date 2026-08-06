@@ -1,4 +1,4 @@
-# Caribbean BlindTest — Spec de développement
+# Oli & Kev Blindtest — Spec de développement
 
 > Fusion de `README_V1.md` (spec initiale) et des évolutions demandées (interface d'admin, invitation par QR Code), corrigée après lecture du code réel du serveur Buzzer (`/Users/kevinallebe/Documents/Buzzer`). Ce document remplace `README_V1.md` comme référence unique du projet.
 
@@ -6,7 +6,7 @@
 
 ## 1. Présentation
 
-Caribbean BlindTest est une application React permettant à un animateur de piloter un blindtest musical à partir de Spotify Premium.
+Oli & Kev Blindtest est une application React permettant à un animateur de piloter un blindtest musical à partir de Spotify Premium.
 
 Les joueurs utilisent une application Buzzer déjà existante qui communique avec un serveur Express + Socket.IO.
 
