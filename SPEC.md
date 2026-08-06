@@ -510,6 +510,30 @@ plusieurs téléphones pour buzzer, son réel) — checklist ci-dessous à déro
 - [ ] Étendre la fenêtre sur la TV, plein écran (F11)
 - [ ] Checklist pré-soirée : connexion Spotify active, playlists à jour, `buzzer.servebeer.com` joignable, TV branchée et détectée
 
+**Quelques jours avant :**
+- Ouvrir l'app une fois pour vérifier que la connexion Spotify fonctionne toujours (un token peut
+  expirer après plusieurs semaines sans jouer — dans ce cas, reconnecte-toi simplement via "Se
+  connecter à Spotify" ; si l'app Spotify elle-même a été recréée entretemps, mets à jour le
+  Client ID dans Réglages > Admin avant de te reconnecter)
+- Vérifier/mettre à jour la liste des playlists dans Réglages > Admin, "Recharger les playlists"
+  pour confirmer les stats (nombre de morceaux, doublons)
+
+**Le jour J :**
+1. Vérifier que `https://buzzer.servebeer.com` répond (ouvrir le lien dans un navigateur)
+2. Lancer l'app :
+   - `npm run build && npm run preview` (recommandé pour la soirée — plus stable, pas de rechargement à chaud intempestif)
+   - ou `npm run dev` si tu préfères (fonctionne tout aussi bien pour un usage perso)
+3. Brancher/détecter la TV, étendre l'affichage (pas besoin de dupliquer : une seule vue, pas d'écran "admin" séparé), glisser la fenêtre du navigateur sur l'écran TV
+4. Plein écran (F11) une fois la fenêtre sur le bon écran
+5. Se connecter à Spotify — vérifier que "Spotify connecté" **et** "Buzzer connecté" sont verts dans le Header
+6. Régler durée/volume/mode de révélation dans Réglages > Jeu selon l'ambiance voulue
+7. Cliquer "Inviter les joueurs" pour afficher le QR code, laisser chacun scanner et rejoindre avant de lancer la première manche
+8. "Charger les playlists" puis "Nouvelle musique" — c'est parti
+
+**Pense-bête pendant la soirée :**
+- Perte de connexion Spotify ou Buzzer → reconnexion automatique gérée par l'app (indicateurs dans le Header) ; en dernier recours, un simple refresh de page reprend la partie là où elle en était (progression persistée)
+- Une playlist éditoriale Spotify (Filtr, Discover Weekly...) refuse toujours de se charger — c'est une restriction Spotify, pas un bug ; utilise tes propres playlists
+
 ---
 
 ## 12. Definition of Done
