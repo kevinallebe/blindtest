@@ -117,6 +117,19 @@
   background: oklch(0.72 0.18 30 / 0.15);
 }
 
+.cbt-header-btn--scores {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--color-accent-gold);
+  background: oklch(0.8 0.16 85 / 0.08);
+  color: var(--color-accent-gold);
+}
+
+.cbt-header-btn--scores:hover {
+  background: oklch(0.8 0.16 85 / 0.18);
+}
+
 .cbt-header-btn--settings {
   border: 2px solid oklch(0.4 0.02 240);
   background: oklch(0.22 0.02 240 / 0.6);

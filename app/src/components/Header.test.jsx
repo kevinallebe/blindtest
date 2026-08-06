@@ -25,15 +25,18 @@ describe('Header', () => {
     expect(screen.getByText('KO')).toBeInTheDocument()
   })
 
-  it('wires the Inviter/Réglages buttons to their callbacks', () => {
+  it('wires the Inviter/Scores/Réglages buttons to their callbacks', () => {
     const onInvite = vi.fn()
+    const onScores = vi.fn()
     const onSettings = vi.fn()
-    render(<Header onInvite={onInvite} onSettings={onSettings} />)
+    render(<Header onInvite={onInvite} onScores={onScores} onSettings={onSettings} />)
 
     fireEvent.click(screen.getByText('Inviter les joueurs'))
+    fireEvent.click(screen.getByText('Scores'))
     fireEvent.click(screen.getByText('Réglages'))
 
     expect(onInvite).toHaveBeenCalledTimes(1)
+    expect(onScores).toHaveBeenCalledTimes(1)
     expect(onSettings).toHaveBeenCalledTimes(1)
   })
 })

@@ -4,6 +4,7 @@ export default function Header({
   spotifyConnected = false,
   buzzerConnected = false,
   onInvite,
+  onScores,
   onSettings,
   title = 'Blindtest',
   initials = 'BT',
@@ -25,6 +26,10 @@ export default function Header({
         <StatusPill label="Buzzer" connected={buzzerConnected} />
         <button type="button" className="cbt-header-btn cbt-header-btn--invite" onClick={onInvite}>
           Inviter les joueurs
+        </button>
+        <button type="button" className="cbt-header-btn cbt-header-btn--scores" onClick={onScores}>
+          <i className="bi bi-star-fill" />
+          Scores
         </button>
         <button type="button" className="cbt-header-btn cbt-header-btn--settings" onClick={onSettings}>
           Réglages

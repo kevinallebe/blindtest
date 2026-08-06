@@ -48,6 +48,7 @@ function App() {
   const toast = useToast()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showScores, setShowScores] = useState(false)
 
   // US-14.2 — un rechargement de playlists (1er chargement, Réglages > Admin, ou fin de queue)
   // marque le début d'une nouvelle partie : le scoreboard Partie repart de zéro.
@@ -65,6 +66,7 @@ function App() {
         spotifyConnected={status === 'ready'}
         buzzerConnected={buzz.connected}
         onInvite={() => setShowInvite(true)}
+        onScores={() => setShowScores(true)}
         onSettings={() => setShowSettings(true)}
         title={branding.name}
         initials={branding.initials}
@@ -80,7 +82,7 @@ function App() {
           settings={settings}
           scores={scores}
           showToast={toast.showToast}
-          overlayOpen={showInvite || showSettings}
+          overlayOpen={showInvite || showSettings || showScores}
         />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
