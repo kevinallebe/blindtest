@@ -1,0 +1,74 @@
+.cbt-session-stats {
+  width: 340px;
+  max-width: 100%;
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 24px;
+  padding: 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  box-shadow: 0 12px 30px oklch(0.08 0.03 240 / 0.5);
+  box-sizing: border-box;
+}
+
+.cbt-session-stats__title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--color-accent-teal);
+  margin-bottom: 14px;
+}
+
+.cbt-session-stats__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cbt-session-stats__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.cbt-session-stats__value {
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.cbt-session-stats__progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--color-text-dim);
+}
+
+.cbt-session-stats__progress-value {
+  color: var(--color-accent-orange);
+}
+
+.cbt-session-stats__progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: oklch(0.3 0.02 240);
+  overflow: hidden;
+}
+
+.cbt-session-stats__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-orange), var(--color-accent-gold));
+  transition: width 0.3s ease;
+}
+
+.cbt-session-stats__settings {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-panel-border);
+}

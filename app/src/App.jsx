@@ -3,6 +3,7 @@ import BuzzList from './components/BuzzList.jsx'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
+import SessionStats from './components/SessionStats.jsx'
 import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
 import Toast from './components/Toast.jsx'
@@ -89,7 +90,17 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz,
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
 export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) {
-  const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
+  const {
+    queue: tracks,
+    currentIndex = 0,
+    stats: queueStats = null,
+    isFinished,
+    status: queueStatus,
+    error: queueError,
+    loadQueue,
+    advance,
+    currentTrack,
+  } = queue
   const { deviceId, togglePlay, pause, setVolume, activateElement, onPlaybackStateChanged, reportAuthFailure } =
     spotifyPlayer
 
@@ -251,6 +262,8 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
 
   return (
     <div className="cbt-game-layout">
+      <SessionStats stats={queueStats} totalTracks={tracks.length} currentIndex={currentIndex} settings={settings} />
+
       <div className="cbt-stage">
         <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />
 
