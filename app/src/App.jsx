@@ -121,6 +121,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
     isFinished,
     status: queueStatus,
     error: queueError,
+    authRequired: queueAuthRequired,
     loadQueue,
     advance,
     currentTrack,
@@ -165,6 +166,12 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
     setVolume(settings.volume / 100)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.volume])
+
+  // Un chargement de playlists qui échoue à cause d'une session Spotify expirée (401 -> refresh
+  // échoué) doit ramener l'animateur à l'écran de reconnexion, pas rester sur un message de queue.
+  useEffect(() => {
+    if (queueAuthRequired) reportAuthFailure()
+  }, [queueAuthRequired, reportAuthFailure])
 
   function waitForPlaybackState(predicate, { timeoutMs = 8000 } = {}) {
     return new Promise((resolve, reject) => {

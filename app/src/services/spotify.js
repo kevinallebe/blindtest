@@ -125,6 +125,12 @@ export function mergeAndDedupeTracks(trackLists) {
 export async function fetchTracksForPlaylists(playlistIds) {
   const results = await Promise.allSettled(playlistIds.map((id) => fetchPlaylistTracks(id)))
 
+  // Une session expirée (401 -> refresh échoué) fait échouer TOUTES les playlists de la même
+  // façon : ce n'est pas un problème par playlist, il ne faut pas le masquer sous
+  // failedPlaylistIds/"playlist inaccessible" mais le laisser remonter pour déclencher la reconnexion.
+  const authFailure = results.find((result) => result.status === 'rejected' && result.reason?.code === 'reauth_required')
+  if (authFailure) throw authFailure.reason
+
   const trackLists = []
   const failedPlaylistIds = []
   results.forEach((result, index) => {

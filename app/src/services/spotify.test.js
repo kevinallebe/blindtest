@@ -75,6 +75,16 @@ describe('fetchTracksForPlaylists', () => {
     expect(result.tracks.map((t) => t.uri)).toEqual(['spotify:track:a'])
     expect(result.failedPlaylistIds).toEqual(['editorial-blocked'])
   })
+
+  it('propagates a reauth_required error instead of treating it as a per-playlist failure', async () => {
+    refreshAccessToken.mockRejectedValue(new Error('refresh failed'))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: false, status: 401 })),
+    )
+
+    await expect(fetchTracksForPlaylists(['a', 'b'])).rejects.toMatchObject({ code: 'reauth_required' })
+  })
 })
 
 describe('playTrack', () => {

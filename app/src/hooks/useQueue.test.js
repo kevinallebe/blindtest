@@ -55,6 +55,24 @@ describe('useQueue', () => {
     expect(result.current.error).toBe('Le chargement des playlists a échoué (spotify_playlist_tracks_failed_403). Réessaie.')
   })
 
+  it('flags authRequired when the session expired instead of blaming a playlist', async () => {
+    adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
+    getValidAccessToken.mockResolvedValue('token123')
+    const err = new Error('reauth')
+    err.code = 'reauth_required'
+    spotify.fetchTracksForPlaylists.mockRejectedValue(err)
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const { result } = renderHook(() => useQueue())
+    await act(async () => {
+      await result.current.loadQueue()
+    })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.authRequired).toBe(true)
+    expect(result.current.error).toMatch(/reconnecte-toi/)
+  })
+
   it('loads, shuffles and persists the queue on success', async () => {
     adminConfig.getPlaylists.mockReturnValue([{ id: 'abc', url: 'x', name: null }])
     getValidAccessToken.mockResolvedValue('token123')

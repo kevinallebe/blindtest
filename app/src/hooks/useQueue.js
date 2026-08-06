@@ -16,11 +16,13 @@ export function useQueue() {
   const [error, setError] = useState(null)
   const [warning, setWarning] = useState(null)
   const [stats, setStats] = useState(null)
+  const [authRequired, setAuthRequired] = useState(false)
 
   const loadQueue = useCallback(async () => {
     setStatus('loading')
     setError(null)
     setWarning(null)
+    setAuthRequired(false)
 
     const playlists = getPlaylists()
     if (playlists.length === 0) {
@@ -61,7 +63,12 @@ export function useQueue() {
     } catch (err) {
       console.error('[useQueue] loadQueue failed', err)
       setStatus('error')
-      setError(`Le chargement des playlists a échoué (${err.message}). Réessaie.`)
+      if (err.code === 'reauth_required') {
+        setAuthRequired(true)
+        setError('Ta session Spotify a expiré — reconnecte-toi.')
+      } else {
+        setError(`Le chargement des playlists a échoué (${err.message}). Réessaie.`)
+      }
     }
   }, [])
 
@@ -82,6 +89,7 @@ export function useQueue() {
     error,
     warning,
     stats,
+    authRequired,
     loadQueue,
     advance,
   }
