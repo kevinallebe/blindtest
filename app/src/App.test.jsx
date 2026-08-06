@@ -30,6 +30,7 @@ function buildSpotifyPlayer(onStateChangeHolder) {
     pause: vi.fn(),
     setVolume: vi.fn(),
     activateElement: vi.fn(),
+    reportAuthFailure: vi.fn(),
     onPlaybackStateChanged: (callback) => {
       onStateChangeHolder.current = callback
       return vi.fn()
@@ -66,9 +67,12 @@ async function flushMicrotasks() {
 }
 
 describe('GameScreen — playback/timer orchestration', () => {
+  let showToast
+
   beforeEach(() => {
     vi.useFakeTimers()
     localStorage.clear()
+    showToast = vi.fn()
     getValidAccessToken.mockResolvedValue('token')
     spotifyService.playTrack.mockResolvedValue(undefined)
   })
@@ -84,7 +88,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
     const buzz = buildBuzz()
 
-    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />)
+    render(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+    )
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -94,6 +100,8 @@ describe('GameScreen — playback/timer orchestration', () => {
     expect(spotifyPlayer.activateElement).toHaveBeenCalledTimes(1)
     // US-9.4 — chaque lancement de manche remet les buzz à zéro pour tous les joueurs
     expect(buzz.startRound).toHaveBeenCalledTimes(1)
+    // Plus de token manuel : playTrack ne prend que (deviceId, uri) — voir services/spotify.js
+    expect(spotifyService.playTrack).toHaveBeenCalledWith('device1', trackA.uri)
 
     // Confirme la lecture réelle (player_state_changed) -> déclenche le délai 1s puis le timer
     await act(async () => {
@@ -124,7 +132,13 @@ describe('GameScreen — playback/timer orchestration', () => {
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
 
     const { rerender } = render(
-      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buildBuzz()} settings={buildSettings()} />,
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buildBuzz()}
+        settings={buildSettings()}
+        showToast={showToast}
+      />,
     )
 
     await act(async () => {
@@ -145,6 +159,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         spotifyPlayer={spotifyPlayer}
         buzz={buildBuzz({ buzzes: [{ name: 'Marie-Lou', reactionTime: 620 }] })}
         settings={buildSettings()}
+        showToast={showToast}
       />,
     )
 
@@ -163,6 +178,7 @@ describe('GameScreen — playback/timer orchestration', () => {
           ],
         })}
         settings={buildSettings()}
+        showToast={showToast}
       />,
     )
     expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
@@ -175,7 +191,7 @@ describe('GameScreen — playback/timer orchestration', () => {
     const buzz = buildBuzz()
 
     const { rerender } = render(
-      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />,
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
     )
 
     await act(async () => {
@@ -192,6 +208,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
         settings={buildSettings()}
+        showToast={showToast}
       />,
     )
 
@@ -206,7 +223,7 @@ describe('GameScreen — playback/timer orchestration', () => {
     const buzz = buildBuzz()
 
     const { rerender } = render(
-      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />,
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
     )
 
     // Lance trackA
@@ -227,6 +244,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
         settings={buildSettings()}
+        showToast={showToast}
       />,
     )
 
@@ -252,7 +270,7 @@ describe('GameScreen — playback/timer orchestration', () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
       await flushMicrotasks()
     })
-    expect(spotifyService.playTrack).toHaveBeenNthCalledWith(2, 'token', 'device1', trackB.uri)
+    expect(spotifyService.playTrack).toHaveBeenNthCalledWith(2, 'device1', trackB.uri)
   })
 
   it('reveals automatically at the end of the timer when revealMode is "auto"', async () => {
@@ -267,6 +285,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
         settings={buildSettings({ revealMode: 'auto' })}
+        showToast={showToast}
       />,
     )
 
@@ -294,13 +313,125 @@ describe('GameScreen — playback/timer orchestration', () => {
     const buzz = buildBuzz()
 
     const { rerender } = render(
-      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings({ volume: 70 })} />,
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
+        settings={buildSettings({ volume: 70 })}
+        showToast={showToast}
+      />,
     )
     expect(spotifyPlayer.setVolume).toHaveBeenLastCalledWith(0.7)
 
     rerender(
-      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings({ volume: 30 })} />,
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
+        settings={buildSettings({ volume: 30 })}
+        showToast={showToast}
+      />,
     )
     expect(spotifyPlayer.setVolume).toHaveBeenLastCalledWith(0.3)
+  })
+
+  describe('error handling (Epic 12)', () => {
+    it('sends the animateur back to the Spotify auth gate on a persistent 401 (reauth_required)', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error('nope'), { code: 'reauth_required' }))
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buildBuzz()}
+          settings={buildSettings()}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+
+      expect(spotifyPlayer.reportAuthFailure).toHaveBeenCalledTimes(1)
+      expect(queue.advance).not.toHaveBeenCalled()
+    })
+
+    it('shows a toast for a generic network error instead of the inline error slot', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error('offline'), { code: 'network_error' }))
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buildBuzz()}
+          settings={buildSettings()}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+
+      expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/réseau/i))
+      expect(spotifyPlayer.reportAuthFailure).not.toHaveBeenCalled()
+    })
+
+    it('shows a specific message when no Spotify device is active', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error('404'), { code: 'no_active_device' }))
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buildBuzz()}
+          settings={buildSettings()}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+
+      expect(screen.getByText(/Aucun appareil Spotify actif/)).toBeInTheDocument()
+    })
+
+    it('shows a specific message for a 403 (missing permissions)', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      spotifyService.playTrack.mockRejectedValueOnce(Object.assign(new Error('403'), { code: 'forbidden' }))
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buildBuzz()}
+          settings={buildSettings()}
+          showToast={showToast}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+
+      expect(screen.getByText(/autorisations nécessaires/)).toBeInTheDocument()
+    })
   })
 })

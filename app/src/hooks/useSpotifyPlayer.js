@@ -79,6 +79,10 @@ export function useSpotifyPlayer() {
     redirectToSpotifyAuthorize().catch((err) => fail(err.code ?? 'unknown'))
   }, [fail])
 
+  // À appeler quand un appel Spotify échoue avec un token irrécupérable (401 persistant) en
+  // dehors du flow d'auth normal — ramène l'animateur à l'écran "Se connecter" avec un message clair.
+  const reportAuthFailure = useCallback(() => fail('invalid_token'), [fail])
+
   const togglePlay = useCallback(() => playerRef.current?.togglePlay(), [])
   const pause = useCallback(() => playerRef.current?.pause(), [])
   const setVolume = useCallback((volume) => playerRef.current?.setVolume(volume), [])
@@ -112,9 +116,9 @@ export function useSpotifyPlayer() {
     if (isCallback && params.get('code')) {
       setStatus('connecting')
       exchangeCodeForToken(params.get('code'))
-        .then(async (token) => {
+        .then(async () => {
           window.history.replaceState({}, '', '/')
-          const me = await fetchMe(token.access_token)
+          const me = await fetchMe()
           if (me.product !== 'premium') {
             clearToken()
             fail('not_premium')
@@ -149,6 +153,7 @@ export function useSpotifyPlayer() {
     error,
     deviceId,
     connect,
+    reportAuthFailure,
     togglePlay,
     pause,
     setVolume,

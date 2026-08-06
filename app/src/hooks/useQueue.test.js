@@ -75,7 +75,7 @@ describe('useQueue', () => {
     expect(result.current.queue).toHaveLength(3)
     expect(result.current.stats).toEqual({ playlistCount: 1, tracksLoaded: 3, duplicatesRemoved: 1, failedPlaylistIds: [] })
     expect(result.current.currentIndex).toBe(0)
-    expect(spotify.fetchTracksForPlaylists).toHaveBeenCalledWith('token123', ['abc'])
+    expect(spotify.fetchTracksForPlaylists).toHaveBeenCalledWith(['abc'])
     expect(JSON.parse(localStorage.getItem('cbt_played_queue'))).toHaveLength(3)
   })
 

@@ -85,7 +85,9 @@ export async function exchangeCodeForToken(code) {
   return getStoredToken()
 }
 
-async function refreshAccessToken() {
+// Forcé (indépendant de expires_at) — utilisé quand une requête renvoie 401 malgré un token
+// qu'on pensait valide (révoqué côté Spotify, horloge décalée...).
+export async function refreshAccessToken() {
   const current = getStoredToken()
   if (!current?.refresh_token) {
     throw new SpotifyAuthError('invalid_token', 'Aucun refresh token disponible')

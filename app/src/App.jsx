@@ -5,14 +5,15 @@ import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
 import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
+import Toast from './components/Toast.jsx'
 import TrackInfo from './components/TrackInfo.jsx'
 import { useBuzzSocket } from './hooks/useBuzzSocket.js'
 import { useGameSettings } from './hooks/useGameSettings.js'
 import { useQueue } from './hooks/useQueue.js'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
 import { useTimer } from './hooks/useTimer.js'
+import { useToast } from './hooks/useToast.js'
 import { playTrack } from './services/spotify.js'
-import { getValidAccessToken } from './spotifyToken.js'
 
 function App() {
   const spotifyPlayer = useSpotifyPlayer()
@@ -20,6 +21,7 @@ function App() {
   const queue = useQueue()
   const buzz = useBuzzSocket()
   const settings = useGameSettings()
+  const toast = useToast()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
@@ -40,17 +42,19 @@ function App() {
           spotifyPlayer={spotifyPlayer}
           buzz={buzz}
           settings={settings}
+          showToast={toast.showToast}
         />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} queue={queue} settings={settings} />}
+      <Toast message={toast.message} onDismiss={toast.dismissToast} />
     </>
   )
 }
 
-function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings }) {
+function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings, showToast }) {
   if (status === 'ready') {
-    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={settings} />
+    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={settings} showToast={showToast} />
   }
 
   if (status === 'connecting') {
@@ -84,9 +88,10 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz,
 
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
-export function GameScreen({ queue, spotifyPlayer, buzz, settings }) {
+export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
-  const { deviceId, togglePlay, pause, setVolume, activateElement, onPlaybackStateChanged } = spotifyPlayer
+  const { deviceId, togglePlay, pause, setVolume, activateElement, onPlaybackStateChanged, reportAuthFailure } =
+    spotifyPlayer
 
   const timer = useTimer(settings.timerDuration)
   // idle -> playing -> paused (manuel ou fin de timer) -> revealed -> (Nouvelle musique) -> playing...
@@ -137,8 +142,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings }) {
     const trackToPlay = currentTrack
 
     try {
-      const token = await getValidAccessToken()
-      await playTrack(token, deviceId, trackToPlay.uri)
+      await playTrack(deviceId, trackToPlay.uri)
       setActiveTrack(trackToPlay)
       advance()
       setRoundStage('playing')
@@ -162,7 +166,18 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings }) {
       }, 1000)
     } catch (err) {
       console.error('[GameScreen] playTrack failed', err)
-      setPlaybackError("La lecture a échoué — vérifie qu'un appareil Spotify actif est disponible.")
+      // Epic 12 — distingue les cas plutôt qu'un message générique unique.
+      if (err.code === 'reauth_required') {
+        reportAuthFailure()
+      } else if (err.code === 'network_error') {
+        showToast('Erreur réseau — vérifie ta connexion internet et réessaie.')
+      } else if (err.code === 'no_active_device') {
+        setPlaybackError('Aucun appareil Spotify actif — réessaie dans quelques secondes.')
+      } else if (err.code === 'forbidden') {
+        setPlaybackError("Ton compte Spotify n'a pas les autorisations nécessaires pour lancer la lecture.")
+      } else {
+        setPlaybackError("La lecture a échoué — vérifie qu'un appareil Spotify actif est disponible.")
+      }
     }
   }
 

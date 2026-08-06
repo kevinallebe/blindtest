@@ -332,12 +332,12 @@ Clés :
 ### Epic 12 — Gestion des erreurs
 
 Cas :
-- 401
-- 403
-- absence de device
-- playlists vides
-- perte Socket.IO
-- erreur réseau
+- 401 → refresh forcé du token puis un seul retry ; si ça échoue aussi, token effacé et retour à l'écran de connexion Spotify
+- 403 → message dédié ("autorisations nécessaires")
+- absence de device → message dédié (404 sur `PUT /play`)
+- playlists vides → géré depuis la Phase 4 (voir Epic 5)
+- perte Socket.IO → géré depuis la Phase 7 (indicateur + reconnexion auto native à socket.io-client)
+- erreur réseau → toast (scope volontairement limité au lancement de la lecture, l'endroit le plus visible/urgent en pleine soirée ; les erreurs réseau au chargement des playlists depuis l'Admin restent en texte inline, un contexte moins pressé)
 
 ---
 

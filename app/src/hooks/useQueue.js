@@ -38,7 +38,6 @@ export function useQueue() {
 
     try {
       const { tracks, duplicatesRemoved, failedPlaylistIds } = await fetchTracksForPlaylists(
-        token,
         playlists.map((playlist) => playlist.id),
       )
 
