@@ -1,0 +1,144 @@
+.cbt-party-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: 100%;
+}
+
+.cbt-party-tab__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cbt-party-tab__eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--color-accent-teal);
+}
+
+.cbt-party-tab__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cbt-party-tab__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.cbt-party-tab__empty {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+}
+
+.cbt-party-tab__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.cbt-party-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--color-panel-border);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.cbt-party-row__grip {
+  color: oklch(0.6 0.02 240);
+  cursor: grab;
+}
+
+.cbt-party-row__name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.cbt-party-row__points {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.cbt-team-card {
+  border: 1.5px solid var(--color-panel-border);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.cbt-team-card__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  color: oklch(0.6 0.02 240);
+}
+
+.cbt-team-card__name {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.cbt-team-card__total {
+  margin-left: auto;
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-gold));
+  color: oklch(0.14 0.02 240);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 14px;
+}
+
+.cbt-team-card__members {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 28px;
+}
+
+.cbt-team-card__member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: oklch(0.22 0.03 240);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.cbt-team-card__member-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.cbt-team-card__member-points {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.cbt-team-card__leave {
+  border: none;
+  background: transparent;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.cbt-team-card__leave:hover {
+  color: var(--color-text);
+}

@@ -3,6 +3,7 @@ import BuzzList from './components/BuzzList.jsx'
 import Header from './components/Header.jsx'
 import PlayerControls from './components/PlayerControls.jsx'
 import QRCodeInvite from './components/QRCodeInvite.jsx'
+import ScoreBoardModal from './components/ScoreBoard/ScoreBoardModal.jsx'
 import SessionStats from './components/SessionStats.jsx'
 import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
@@ -89,6 +90,7 @@ function App() {
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} queue={queueWithScoreReset} settings={settings} branding={branding} />
       )}
+      {showScores && <ScoreBoardModal onClose={() => setShowScores(false)} scores={scores} buzz={buzz} />}
       <Toast message={toast.message} onDismiss={toast.dismissToast} />
     </>
   )

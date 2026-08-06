@@ -1,0 +1,132 @@
+.cbt-overall-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: 100%;
+}
+
+.cbt-overall-tab__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cbt-overall-tab__eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--color-accent-teal);
+}
+
+.cbt-overall-tab__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.cbt-overall-tab__empty {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dim);
+}
+
+.cbt-overall-tab__footer {
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--color-text-dim);
+}
+
+.cbt-overall-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--color-panel-border);
+  border-radius: 16px;
+  padding: 12px 18px;
+}
+
+.cbt-overall-row__rank {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-dim);
+  font-weight: 700;
+}
+
+.cbt-overall-row__name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.cbt-overall-row__points {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.cbt-overall-row--gold {
+  background: oklch(0.8 0.16 85 / 0.12);
+  border-color: oklch(0.8 0.16 85 / 0.5);
+  padding: 14px 18px;
+}
+
+.cbt-overall-row--silver {
+  background: oklch(0.75 0.02 240 / 0.1);
+  border-color: oklch(0.75 0.02 240 / 0.4);
+  padding: 14px 18px;
+}
+
+.cbt-overall-row--bronze {
+  background: oklch(0.6 0.12 40 / 0.15);
+  border-color: oklch(0.6 0.12 40 / 0.5);
+  padding: 14px 18px;
+}
+
+.cbt-overall-row__rank--gold,
+.cbt-overall-row__rank--silver,
+.cbt-overall-row__rank--bronze {
+  border-radius: 50%;
+  color: oklch(0.14 0.02 240);
+  font-weight: 800;
+}
+
+.cbt-overall-row__rank--gold {
+  background: oklch(0.8 0.16 85);
+}
+
+.cbt-overall-row__rank--silver {
+  background: oklch(0.75 0.02 240);
+}
+
+.cbt-overall-row__rank--bronze {
+  background: oklch(0.6 0.12 40);
+}
+
+.cbt-overall-row--gold .cbt-overall-row__name,
+.cbt-overall-row--silver .cbt-overall-row__name,
+.cbt-overall-row--bronze .cbt-overall-row__name {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.cbt-overall-row--gold .cbt-overall-row__points {
+  color: var(--color-accent-gold);
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.cbt-overall-row--silver .cbt-overall-row__points,
+.cbt-overall-row--bronze .cbt-overall-row__points {
+  color: oklch(0.85 0.01 240);
+  font-weight: 800;
+  font-size: 16px;
+}
