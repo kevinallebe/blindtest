@@ -486,6 +486,25 @@ Spotify peut l'atteindre — mais repose sur les mêmes patterns (`TrackInfo` en
 - [ ] Tests unitaires : shuffle, dédup, parsing playlist, migrations de schéma localStorage
 - [ ] Recette manuelle bout-en-bout : QR code → connexion Spotify → ajout playlists via admin → lancement manche → buzz réel depuis l'app Buzzer (plusieurs joueurs) → révélation → manche suivante → fin de queue → refresh en cours de partie
 
+113 tests unitaires (20 fichiers), shuffle/dédup/parsing tous couverts. Ajout de `useSpotifyPlayer.test.js`
+(non prévu initialement, mais c'est le hook le plus complexe et celui d'où sont sortis plusieurs
+bugs réels — cf. Phase 5) ainsi que `Header`/`QRCodeInvite` pour compléter la couverture des
+composants. Pas de "migrations de schéma localStorage" : décision consciente de ne pas construire
+de système de versionnage/migration (voir note storage.js) — app mono-utilisateur sans ancien
+format de données à migrer, ça aurait été de la complexité spéculative sans besoin réel.
+
+La recette manuelle bout-en-bout ne peut être exécutée que par l'animateur (compte Spotify réel,
+plusieurs téléphones pour buzzer, son réel) — checklist ci-dessous à dérouler soi-même :
+- [ ] Scanner le QR code depuis un téléphone → arrive bien sur l'app Buzzer
+- [ ] Se connecter à Spotify (compte Premium) → statut "Spotify connecté" dans le Header
+- [ ] Ajouter au moins 2 playlists via Réglages > Admin (lien direct, pas de playlist éditoriale)
+- [ ] "Charger les playlists" → stats correctes, "Nouvelle musique" lance un morceau audible
+- [ ] Buzzer depuis 2-3 téléphones différents → classement affiché dans le bon ordre, son coupé au 1er buzz
+- [ ] "Révéler la réponse" → titre/artiste/pochette corrects, "Continuer" relance le son si besoin
+- [ ] "Nouvelle musique" pour la manche suivante → nouveau morceau, classement des buzz repartit à zéro
+- [ ] Dérouler jusqu'au dernier morceau de la queue → message de fin après la dernière révélation
+- [ ] Rafraîchir la page en cours de partie → session Spotify et progression de la queue restaurées
+
 ### Phase 12 — Mise en place pour la soirée
 - [ ] Lancer l'app (`npm run dev` ou `npm run build && npm run preview`)
 - [ ] Étendre la fenêtre sur la TV, plein écran (F11)
