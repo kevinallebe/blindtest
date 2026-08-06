@@ -475,6 +475,13 @@ Chaque phase est livrable et testable indépendamment.
 - [ ] Priorité lisibilité TV (grande police, contrastes forts) — le contexte principal est la projection salon
 - [ ] Vérifier aussi un usage replié sur le PC seul (fallback)
 
+Vérifié à 1024px, 800px et en hauteur réduite (500px, cas de l'overlay QR) : aucun débordement
+horizontal, aucun correctif nécessaire. Les patterns déjà en place phase après phase
+(`flex-wrap`, `clamp()`, `max-width:100%`/`90vw`, `min(...,vw)`) suffisaient. L'écran de jeu
+lui-même (avec Spotify connecté) n'a pas pu être vérifié en direct — seule une vraie session
+Spotify peut l'atteindre — mais repose sur les mêmes patterns (`TrackInfo` en `90vw`, `Timer` en
+`520px` max, `BuzzList` en `100%` max).
+
 ### Phase 11 — Tests & recette
 - [ ] Tests unitaires : shuffle, dédup, parsing playlist, migrations de schéma localStorage
 - [ ] Recette manuelle bout-en-bout : QR code → connexion Spotify → ajout playlists via admin → lancement manche → buzz réel depuis l'app Buzzer (plusieurs joueurs) → révélation → manche suivante → fin de queue → refresh en cours de partie
