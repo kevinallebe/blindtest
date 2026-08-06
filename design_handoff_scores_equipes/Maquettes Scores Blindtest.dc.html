@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:oklch(0.16 0.03 240);}
+  a{color:oklch(0.78 0.15 190);}
+  a:hover{color:oklch(0.8 0.16 85);}
+</style>
+</helmet>
+
+<div style="font-family:'Manrope',sans-serif;color:oklch(0.96 0.01 240);min-height:100vh;padding:72px 64px 120px;background:
+  radial-gradient(circle at 90% 5%, oklch(0.72 0.18 30 / 0.22), transparent 45%),
+  radial-gradient(circle at 5% 95%, oklch(0.78 0.15 190 / 0.18), transparent 45%),
+  linear-gradient(135deg, oklch(0.15 0.03 250), oklch(0.19 0.045 235) 50%, oklch(0.16 0.03 240));
+  display:flex;flex-direction:column;gap:80px;align-items:center;">
+
+  <div style="text-align:center;max-width:720px;display:flex;flex-direction:column;gap:8px;">
+    <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:34px;">Scores &amp; Équipes — Maquettes</div>
+    <div style="color:oklch(0.72 0.02 240);font-size:15px;">Extension du blindtest existant — mêmes tokens, même typo (Baloo 2 / Manrope)</div>
+  </div>
+
+  <!-- SCREEN 5: Header button -->
+  <div data-screen-label="05 — Bouton Header Scores" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">05 — Bouton Header "Scores"</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;width:1180px;background:oklch(0.25 0.035 240 / 0.5);border:1px solid oklch(0.38 0.03 240);border-radius:22px;padding:18px 28px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:conic-gradient(from 180deg, oklch(0.78 0.15 190), oklch(0.72 0.18 30), oklch(0.8 0.16 85), oklch(0.78 0.15 190));display:flex;align-items:center;justify-content:center;">
+          <div style="width:42px;height:42px;border-radius:50%;background:oklch(0.16 0.03 240);display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13px;">OK</div>
+        </div>
+        <div>
+          <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;">Oli &amp; Kev Blindtest</div>
+          <div style="color:oklch(0.72 0.02 240);font-size:13px;">Soirée blindtest · joué depuis Spotify</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:center;gap:8px;border:1px solid oklch(0.38 0.03 240);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.75 0.19 145);"></span>Spotify connecté</div>
+        <div style="display:flex;align-items:center;gap:8px;border:1px solid oklch(0.38 0.03 240);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.75 0.19 145);"></span>Buzzer connecté</div>
+        <div style="border:1.5px solid oklch(0.72 0.18 30);color:oklch(0.72 0.18 30);border-radius:999px;padding:9px 20px;font-size:14px;font-weight:700;">Inviter les joueurs</div>
+        <div style="display:flex;align-items:center;gap:8px;border:1.5px solid oklch(0.8 0.16 85);color:oklch(0.8 0.16 85);border-radius:999px;padding:9px 20px;font-size:14px;font-weight:700;background:oklch(0.8 0.16 85 / 0.08);">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L10 5.5L15 6.2L11.3 9.6L12.2 14.5L8 12.1L3.8 14.5L4.7 9.6L1 6.2L6 5.5L8 1Z" fill="currentColor"/></svg>
+          Scores
+        </div>
+        <div style="border:1.5px solid oklch(0.5 0.02 240);color:oklch(0.85 0.01 240);border-radius:999px;padding:9px 20px;font-size:14px;font-weight:700;">Réglages</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: buzz ranking with toggles -->
+  <div data-screen-label="01 — Classement de buzz (maj)" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">01 — Classement de buzz, avec attribution de points</div>
+    <div style="width:480px;background:oklch(0.25 0.035 240);border:1px solid oklch(0.38 0.03 240);border-radius:24px;padding:22px;box-shadow:0 20px 50px -20px oklch(0.1 0 0 / 0.6);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;">
+        <div style="font-size:12px;letter-spacing:0.08em;font-weight:800;color:oklch(0.78 0.15 190);">CLASSEMENT DES BUZZ</div>
+        <div style="font-size:12px;color:oklch(0.65 0.02 240);">max 5</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.22 0.03 240);border-radius:16px;padding:12px 14px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:oklch(0.8 0.16 85);color:oklch(0.16 0.03 240);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;">1</div>
+          <div style="flex:1;font-weight:700;font-size:15px;">Kévin</div>
+          <div style="background:oklch(0.55 0.2 25 / 0.25);color:oklch(0.75 0.15 25);font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;">14.23s</div>
+          <div style="display:flex;gap:6px;">
+            <div title="Artiste" style="width:32px;height:32px;border-radius:10px;border:1.5px solid oklch(0.5 0.02 240);display:flex;align-items:center;justify-content:center;color:oklch(0.6 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="4.5" r="2.4"/><path d="M2.5 14c0-3.3 2.5-5.2 5.5-5.2s5.5 1.9 5.5 5.2" stroke-linecap="round"/></svg>
+            </div>
+            <div title="Titre" style="width:32px;height:32px;border-radius:10px;border:1.5px solid oklch(0.5 0.02 240);display:flex;align-items:center;justify-content:center;color:oklch(0.6 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="10.5" r="2"/><path d="M7 12V4.5L14 3v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div title="Les deux" style="width:32px;height:32px;border-radius:10px;border:1.5px solid oklch(0.5 0.02 240);display:flex;align-items:center;justify-content:center;color:oklch(0.6 0.02 240);">
+              <svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="5" cy="4" r="1.9"/><path d="M1.3 12.2c0-2.6 1.8-4 3.7-4s3.7 1.4 3.7 4" stroke-linecap="round"/><circle cx="13.5" cy="10.8" r="1.6"/><path d="M9.5 12V6L16 4.8v5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.22 0.03 240);border-radius:16px;padding:12px 14px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:oklch(0.5 0.02 240 / 0.5);color:oklch(0.9 0.01 240);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;">2</div>
+          <div style="flex:1;font-weight:700;font-size:15px;">Marie <span style="color:oklch(0.72 0.02 240);font-weight:600;font-size:13px;">· 0,5 pt</span></div>
+          <div style="background:oklch(0.55 0.2 25 / 0.25);color:oklch(0.75 0.15 25);font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;">15.90s</div>
+          <div style="display:flex;gap:6px;">
+            <div title="Artiste — actif" style="width:32px;height:32px;border-radius:10px;background:oklch(0.78 0.15 190);display:flex;align-items:center;justify-content:center;color:oklch(0.12 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="4.5" r="2.4"/><path d="M2.5 14c0-3.3 2.5-5.2 5.5-5.2s5.5 1.9 5.5 5.2Z"/></svg>
+            </div>
+            <div title="Titre" style="width:32px;height:32px;border-radius:10px;border:1.5px solid oklch(0.5 0.02 240);display:flex;align-items:center;justify-content:center;color:oklch(0.6 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="10.5" r="2"/><path d="M7 12V4.5L14 3v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div title="Les deux" style="width:32px;height:32px;border-radius:10px;border:1.5px solid oklch(0.5 0.02 240);display:flex;align-items:center;justify-content:center;color:oklch(0.6 0.02 240);">
+              <svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="5" cy="4" r="1.9"/><path d="M1.3 12.2c0-2.6 1.8-4 3.7-4s3.7 1.4 3.7 4" stroke-linecap="round"/><circle cx="13.5" cy="10.8" r="1.6"/><path d="M9.5 12V6L16 4.8v5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.22 0.03 240);border-radius:16px;padding:12px 14px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:oklch(0.5 0.02 240 / 0.5);color:oklch(0.9 0.01 240);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;">3</div>
+          <div style="flex:1;font-weight:700;font-size:15px;">Tom <span style="color:oklch(0.72 0.02 240);font-weight:600;font-size:13px;">· 1 pt</span></div>
+          <div style="background:oklch(0.55 0.2 25 / 0.25);color:oklch(0.75 0.15 25);font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;">17.05s</div>
+          <div style="display:flex;gap:6px;">
+            <div title="Artiste — actif" style="width:32px;height:32px;border-radius:10px;background:oklch(0.78 0.15 190);display:flex;align-items:center;justify-content:center;color:oklch(0.12 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="4.5" r="2.4"/><path d="M2.5 14c0-3.3 2.5-5.2 5.5-5.2s5.5 1.9 5.5 5.2Z"/></svg>
+            </div>
+            <div title="Titre — actif" style="width:32px;height:32px;border-radius:10px;background:oklch(0.78 0.15 190);display:flex;align-items:center;justify-content:center;color:oklch(0.12 0.02 240);">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="10.5" r="2"/><path d="M7 12V4.5L14 3v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <div title="Les deux — actif" style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg, oklch(0.72 0.18 30), oklch(0.8 0.16 85));display:flex;align-items:center;justify-content:center;color:oklch(0.12 0.02 240);">
+              <svg width="18" height="16" viewBox="0 0 18 16" fill="currentColor"><circle cx="5" cy="4" r="1.9"/><path d="M1.3 12.2c0-2.6 1.8-4 3.7-4s3.7 1.4 3.7 4Z"/><circle cx="13.5" cy="10.8" r="1.6"/><path d="M9.5 12V6L16 4.8v5H9.5Z" stroke="currentColor" stroke-width="0"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:oklch(0.65 0.02 240);text-align:center;">Artiste ou titre = 0,5 pt · les deux = 1 pt · re-cliquer retire le point</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: drag in progress -->
+  <div data-screen-label="03 — Drag & drop en cours" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">03 — Formation d'équipe, glisser-déposer en cours</div>
+    <div style="width:480px;background:oklch(0.25 0.035 240);border:1px solid oklch(0.38 0.03 240);border-radius:24px;padding:22px;position:relative;">
+      <div style="font-size:12px;letter-spacing:0.08em;font-weight:800;color:oklch(0.78 0.15 190);margin-bottom:16px;">PARTIE · ÉQUIPES</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.22 0.03 240 / 0.35);border:1.5px dashed oklch(0.5 0.02 240);border-radius:16px;padding:12px 14px;opacity:0.45;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+          <div style="flex:1;font-weight:700;font-size:15px;">Tom <span style="color:oklch(0.72 0.02 240);font-weight:600;font-size:13px;">· 1 pt</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.78 0.15 190 / 0.15);border:1.5px solid oklch(0.78 0.15 190);border-radius:16px;padding:12px 14px;box-shadow:0 0 0 4px oklch(0.78 0.15 190 / 0.12);">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+          <div style="flex:1;font-weight:700;font-size:15px;">Marie <span style="color:oklch(0.72 0.02 240);font-weight:600;font-size:13px;">· 0,5 pt</span></div>
+          <div style="font-size:12px;color:oklch(0.78 0.15 190);font-weight:700;">Déposer pour fusionner</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:oklch(0.22 0.03 240);border-radius:16px;padding:12px 14px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+          <div style="flex:1;font-weight:700;font-size:15px;">Léa <span style="color:oklch(0.72 0.02 240);font-weight:600;font-size:13px;">· 0 pt</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Modal Partie -->
+  <div data-screen-label="02 — Modale Scores, onglet Partie" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">02 — Modale Scores → onglet Partie</div>
+    <div style="width:1020px;min-height:620px;background:oklch(0.19 0.03 240);border:1px solid oklch(0.38 0.03 240);border-radius:26px;box-shadow:0 30px 70px -20px oklch(0.08 0 0 / 0.7);display:flex;overflow:hidden;">
+      <div style="width:230px;background:oklch(0.22 0.03 240);padding:32px 20px;display:flex;flex-direction:column;gap:8px;border-right:1px solid oklch(0.38 0.03 240);">
+        <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:24px;margin-bottom:18px;">Scores</div>
+        <div style="background:oklch(0.72 0.18 30 / 0.18);border:1px solid oklch(0.72 0.18 30);color:oklch(0.85 0.1 40);border-radius:14px;padding:14px 16px;font-weight:700;">Partie</div>
+        <div style="color:oklch(0.72 0.02 240);border-radius:14px;padding:14px 16px;font-weight:700;">Général</div>
+      </div>
+      <div style="flex:1;padding:32px 36px;display:flex;flex-direction:column;gap:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;letter-spacing:0.08em;font-weight:800;color:oklch(0.78 0.15 190);">PARTIE EN COURS</div>
+          <div style="display:flex;gap:10px;">
+            <div style="border:1.5px solid oklch(0.78 0.15 190);color:oklch(0.78 0.15 190);border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;">Ouvrir les inscriptions</div>
+            <div style="border:1.5px solid oklch(0.5 0.02 240);color:oklch(0.85 0.01 240);border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2l3 3M2 5l3-3M11 2l-3 3M11 5l-3-3" stroke-linecap="round"/><path d="M2 8l3 3M2 11l3-3M11 8l-3 3M11 11l-3-3" stroke-linecap="round"/></svg>
+              Dissoudre les équipes
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="border:1.5px solid oklch(0.38 0.03 240);border-radius:18px;padding:16px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+              <div style="font-weight:800;font-size:15px;">Équipe Marie &amp; Tom</div>
+              <div style="margin-left:auto;background:linear-gradient(135deg, oklch(0.72 0.18 30), oklch(0.8 0.16 85));color:oklch(0.14 0.02 240);font-weight:800;border-radius:999px;padding:5px 14px;font-size:14px;">1,5 pt</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;padding-left:28px;">
+              <div style="display:flex;align-items:center;gap:10px;background:oklch(0.22 0.03 240);border-radius:12px;padding:8px 12px;">
+                <div style="flex:1;font-weight:600;font-size:14px;">Marie</div>
+                <div style="color:oklch(0.72 0.02 240);font-size:13px;">0,5 pt</div>
+                <svg width="14" height="14" viewBox="0 0 14 14" stroke="oklch(0.65 0.02 240)" stroke-width="1.6" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:oklch(0.22 0.03 240);border-radius:12px;padding:8px 12px;">
+                <div style="flex:1;font-weight:600;font-size:14px;">Tom</div>
+                <div style="color:oklch(0.72 0.02 240);font-size:13px;">1 pt</div>
+                <svg width="14" height="14" viewBox="0 0 14 14" stroke="oklch(0.65 0.02 240)" stroke-width="1.6" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:14px;border:1px solid oklch(0.38 0.03 240);border-radius:14px;padding:12px 16px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+            <div style="flex:1;font-weight:700;font-size:15px;">Kévin</div>
+            <div style="color:oklch(0.72 0.02 240);font-size:14px;">0,5 pt</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;border:1px solid oklch(0.38 0.03 240);border-radius:14px;padding:12px 16px;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="oklch(0.6 0.02 240)"><circle cx="3" cy="3" r="1.3"/><circle cx="3" cy="7" r="1.3"/><circle cx="3" cy="11" r="1.3"/><circle cx="8" cy="3" r="1.3"/><circle cx="8" cy="7" r="1.3"/><circle cx="8" cy="11" r="1.3"/></svg>
+            <div style="flex:1;font-weight:700;font-size:15px;">Léa</div>
+            <div style="color:oklch(0.72 0.02 240);font-size:14px;">0 pt</div>
+          </div>
+        </div>
+        <div style="margin-top:auto;font-size:12px;color:oklch(0.65 0.02 240);">Remis à zéro automatiquement au rechargement des playlists.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: Modal Général -->
+  <div data-screen-label="04 — Modale Scores, onglet Général" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">04 — Modale Scores → onglet Général</div>
+    <div style="width:1020px;min-height:620px;background:oklch(0.19 0.03 240);border:1px solid oklch(0.38 0.03 240);border-radius:26px;box-shadow:0 30px 70px -20px oklch(0.08 0 0 / 0.7);display:flex;overflow:hidden;">
+      <div style="width:230px;background:oklch(0.22 0.03 240);padding:32px 20px;display:flex;flex-direction:column;gap:8px;border-right:1px solid oklch(0.38 0.03 240);">
+        <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:24px;margin-bottom:18px;">Scores</div>
+        <div style="color:oklch(0.72 0.02 240);border-radius:14px;padding:14px 16px;font-weight:700;">Partie</div>
+        <div style="background:oklch(0.72 0.18 30 / 0.18);border:1px solid oklch(0.72 0.18 30);color:oklch(0.85 0.1 40);border-radius:14px;padding:14px 16px;font-weight:700;">Général</div>
+      </div>
+      <div style="flex:1;padding:32px 36px;display:flex;flex-direction:column;gap:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;letter-spacing:0.08em;font-weight:800;color:oklch(0.78 0.15 190);">CLASSEMENT GÉNÉRAL · SOIRÉE</div>
+          <div style="border:1.5px solid oklch(0.72 0.18 30);color:oklch(0.72 0.18 30);border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;">Réinitialiser le score général</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:16px;background:oklch(0.8 0.16 85 / 0.12);border:1px solid oklch(0.8 0.16 85 / 0.5);border-radius:16px;padding:14px 18px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:oklch(0.8 0.16 85);color:oklch(0.14 0.02 240);font-weight:800;display:flex;align-items:center;justify-content:center;">1</div>
+            <div style="flex:1;font-weight:800;font-size:16px;">Tom</div>
+            <div style="font-weight:800;font-size:16px;color:oklch(0.8 0.16 85);">6 pts</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;background:oklch(0.75 0.02 240 / 0.1);border:1px solid oklch(0.75 0.02 240 / 0.4);border-radius:16px;padding:14px 18px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:oklch(0.75 0.02 240);color:oklch(0.14 0.02 240);font-weight:800;display:flex;align-items:center;justify-content:center;">2</div>
+            <div style="flex:1;font-weight:800;font-size:16px;">Marie</div>
+            <div style="font-weight:800;font-size:16px;color:oklch(0.85 0.01 240);">5 pts</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;background:oklch(0.6 0.12 40 / 0.15);border:1px solid oklch(0.6 0.12 40 / 0.5);border-radius:16px;padding:14px 18px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:oklch(0.6 0.12 40);color:oklch(0.14 0.02 240);font-weight:800;display:flex;align-items:center;justify-content:center;">3</div>
+            <div style="flex:1;font-weight:800;font-size:16px;">Kévin</div>
+            <div style="font-weight:800;font-size:16px;color:oklch(0.85 0.01 240);">4,5 pts</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;border:1px solid oklch(0.38 0.03 240);border-radius:16px;padding:12px 18px;">
+            <div style="width:30px;height:30px;color:oklch(0.65 0.02 240);font-weight:700;display:flex;align-items:center;justify-content:center;">4</div>
+            <div style="flex:1;font-weight:700;font-size:15px;">Léa</div>
+            <div style="font-weight:700;font-size:15px;color:oklch(0.72 0.02 240);">2 pts</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;border:1px solid oklch(0.38 0.03 240);border-radius:16px;padding:12px 18px;">
+            <div style="width:30px;height:30px;color:oklch(0.65 0.02 240);font-weight:700;display:flex;align-items:center;justify-content:center;">5</div>
+            <div style="flex:1;font-weight:700;font-size:15px;">Nico</div>
+            <div style="font-weight:700;font-size:15px;color:oklch(0.72 0.02 240);">0,5 pt</div>
+          </div>
+        </div>
+        <div style="margin-top:auto;font-size:12px;color:oklch(0.65 0.02 240);">Ne se réinitialise jamais automatiquement — persiste sur toute la soirée.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: buzzer modes -->
+  <div data-screen-label="06 — Buzzer, modes inscription / partie" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.65 0.02 240);font-weight:700;">06 — App Buzzer : mode inscription vs mode partie</div>
+    <div style="display:flex;gap:40px;">
+
+      <div style="width:280px;background:oklch(0.19 0.03 240);border:1px solid oklch(0.38 0.03 240);border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;border:1px solid oklch(0.38 0.03 240);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.75 0.19 145);"></span>Connecté</div>
+        <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(from 180deg, oklch(0.78 0.15 190), oklch(0.72 0.18 30), oklch(0.8 0.16 85), oklch(0.78 0.15 190));display:flex;align-items:center;justify-content:center;">
+          <div style="width:48px;height:48px;border-radius:50%;background:oklch(0.16 0.03 240);display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13px;">OK</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:20px;">Blindtest</div>
+          <div style="color:oklch(0.78 0.15 190);font-weight:800;font-size:12px;letter-spacing:0.08em;">BUZZER · INSCRIPTIONS OUVERTES</div>
+        </div>
+        <div style="width:100%;background:oklch(0.1 0.02 240);border-radius:16px;padding:14px 16px;text-align:center;color:oklch(0.9 0.01 240);font-weight:700;">Kévin</div>
+        <div style="width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 35% 30%, oklch(0.85 0.13 190), oklch(0.6 0.13 195));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 60px -10px oklch(0.78 0.15 190 / 0.7);">
+          <svg width="34" height="34" viewBox="0 0 16 16" fill="oklch(0.1 0.02 240)"><circle cx="8" cy="5" r="2.6"/><path d="M2.5 14.2c0-3.4 2.6-5.4 5.5-5.4s5.5 2 5.5 5.4Z"/><path d="M11.5 3.2c.7.5 1.1 1.4 1.1 2.3M10.9 1.6c1.4.5 2.4 1.9 2.4 3.5" stroke="oklch(0.1 0.02 240)" stroke-width="1" fill="none" stroke-linecap="round"/></svg>
+          <div style="font-weight:800;font-size:20px;color:oklch(0.08 0.02 240);letter-spacing:0.02em;">REJOINDRE</div>
+        </div>
+        <div style="color:oklch(0.72 0.02 240);font-size:13px;">Appuie pour rejoindre le classement</div>
+      </div>
+
+      <div style="width:280px;background:oklch(0.19 0.03 240);border:1px solid oklch(0.38 0.03 240);border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;border:1px solid oklch(0.38 0.03 240);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;"><span style="width:7px;height:7px;border-radius:50%;background:oklch(0.75 0.19 145);"></span>Connecté</div>
+        <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(from 180deg, oklch(0.78 0.15 190), oklch(0.72 0.18 30), oklch(0.8 0.16 85), oklch(0.78 0.15 190));display:flex;align-items:center;justify-content:center;">
+          <div style="width:48px;height:48px;border-radius:50%;background:oklch(0.16 0.03 240);display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13px;">OK</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:20px;">Blindtest</div>
+          <div style="color:oklch(0.72 0.18 30);font-weight:800;font-size:12px;letter-spacing:0.08em;">BUZZER</div>
+        </div>
+        <div style="width:100%;background:oklch(0.1 0.02 240);border-radius:16px;padding:14px 16px;text-align:center;color:oklch(0.9 0.01 240);font-weight:700;">Kévin</div>
+        <div style="width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 35% 30%, oklch(0.8 0.17 55), oklch(0.62 0.19 30));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 60px -10px oklch(0.72 0.18 30 / 0.7);">
+          <div style="font-size:30px;">🚨</div>
+          <div style="font-weight:800;font-size:22px;color:oklch(0.08 0.02 240);letter-spacing:0.02em;">BUZZ</div>
+        </div>
+        <div style="color:oklch(0.72 0.02 240);font-size:13px;">En attente des buzz…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+</body>
+</html>
