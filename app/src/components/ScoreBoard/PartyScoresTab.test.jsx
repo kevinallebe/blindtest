@@ -78,10 +78,22 @@ describe('PartyScoresTab', () => {
 
   it('calls buzz.startJoin when "Ouvrir les inscriptions" is clicked', () => {
     const startJoin = vi.fn()
-    render(<PartyScoresTab scores={buildScores()} buzz={{ startJoin }} />)
+    render(<PartyScoresTab scores={buildScores()} buzz={{ startJoin, mode: 'round' }} />)
 
     fireEvent.click(screen.getByText('Ouvrir les inscriptions'))
     expect(startJoin).toHaveBeenCalledTimes(1)
+  })
+
+  it('reflects whether registration is open via buzz.mode (US-16.1)', () => {
+    const { rerender } = render(<PartyScoresTab scores={buildScores()} buzz={{ mode: 'round' }} />)
+    const closedButton = screen.getByText('Ouvrir les inscriptions')
+    expect(closedButton).toHaveClass('cbt-pill-btn--teal')
+    expect(closedButton).not.toHaveClass('cbt-pill-btn--teal-active')
+
+    rerender(<PartyScoresTab scores={buildScores()} buzz={{ mode: 'join' }} />)
+    const openButton = screen.getByText('Inscriptions ouvertes')
+    expect(openButton).toHaveClass('cbt-pill-btn--teal-active')
+    expect(screen.queryByText('Ouvrir les inscriptions')).not.toBeInTheDocument()
   })
 
   describe('drag & drop team formation (US-15.1, screen 03)', () => {

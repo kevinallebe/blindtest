@@ -9,6 +9,7 @@ export default function PartyScoresTab({ scores, buzz }) {
   const { party } = scores
   const teamedNames = new Set(party.teams.flatMap((team) => team.memberNames))
   const individuals = party.players.filter((player) => !teamedNames.has(player.name))
+  const isRegistrationOpen = buzz?.mode === 'join'
 
   const [draggingName, setDraggingName] = useState(null)
   const [dropTargetKey, setDropTargetKey] = useState(null)
@@ -62,8 +63,13 @@ export default function PartyScoresTab({ scores, buzz }) {
       <div className="cbt-party-tab__header">
         <div className="cbt-party-tab__eyebrow">Partie en cours</div>
         <div className="cbt-party-tab__actions">
-          <button type="button" className="cbt-pill-btn cbt-pill-btn--teal" onClick={() => buzz?.startJoin?.()}>
-            Ouvrir les inscriptions
+          <button
+            type="button"
+            className={`cbt-pill-btn ${isRegistrationOpen ? 'cbt-pill-btn--teal-active' : 'cbt-pill-btn--teal'}`}
+            onClick={() => buzz?.startJoin?.()}
+          >
+            {isRegistrationOpen && <span className="cbt-pill-btn__dot" />}
+            {isRegistrationOpen ? 'Inscriptions ouvertes' : 'Ouvrir les inscriptions'}
           </button>
           <button
             type="button"

@@ -89,4 +89,18 @@ describe('useBuzzSocket', () => {
     act(() => fakeSocket.trigger('joinedList', list))
     expect(result.current.joinedList).toEqual(list)
   })
+
+  it('starts in "round" mode and reflects the mode event broadcast by the server', () => {
+    const fakeSocket = createFakeSocket()
+    getSocket.mockReturnValue(fakeSocket)
+
+    const { result } = renderHook(() => useBuzzSocket())
+    expect(result.current.mode).toBe('round')
+
+    act(() => fakeSocket.trigger('mode', 'join'))
+    expect(result.current.mode).toBe('join')
+
+    act(() => fakeSocket.trigger('mode', 'round'))
+    expect(result.current.mode).toBe('round')
+  })
 })

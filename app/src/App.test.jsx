@@ -43,6 +43,7 @@ function buildBuzz(overrides = {}) {
     connected: true,
     buzzes: [],
     joinedList: [],
+    mode: 'round',
     startRound: vi.fn(),
     startJoin: vi.fn(),
     ...overrides,

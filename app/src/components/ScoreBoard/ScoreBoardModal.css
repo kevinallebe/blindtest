@@ -122,6 +122,25 @@
   background: oklch(0.78 0.15 190 / 0.12);
 }
 
+/* US-16.1 — état "inscriptions ouvertes" : rempli plutôt que contour, pour rester lisible d'un
+   coup d'œil pendant que l'animateur prépare la soirée. */
+.cbt-pill-btn--teal-active {
+  border: 1.5px solid var(--color-accent-teal);
+  background: var(--color-accent-teal);
+  color: oklch(0.14 0.02 240);
+}
+
+.cbt-pill-btn--teal-active:hover {
+  filter: brightness(1.05);
+}
+
+.cbt-pill-btn__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: oklch(0.14 0.02 240);
+}
+
 .cbt-pill-btn--neutral {
   border: 1.5px solid oklch(0.5 0.02 240);
   color: var(--color-text);
