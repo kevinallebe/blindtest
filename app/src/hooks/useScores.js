@@ -6,6 +6,7 @@ import {
   getStoredPartyScores,
   leaveTeam as leaveTeamInList,
   mergeIntoTeam as mergeIntoTeamInList,
+  renameTeam as renameTeamInList,
   setStoredOverallScores,
   setStoredPartyScores,
 } from '../services/scores.js'
@@ -116,6 +117,15 @@ export function useScores() {
     setParty((prev) => ({ ...prev, teams: [] }))
   }, [setParty])
 
+  // Nom personnalisé pour une équipe — un nom vide efface la personnalisation et revient au nom
+  // auto-généré à partir des membres.
+  const renameTeam = useCallback(
+    (teamId, name) => {
+      setParty((prev) => ({ ...prev, teams: renameTeamInList(prev.teams, teamId, name) }))
+    },
+    [setParty],
+  )
+
   // US-14.2 — nouvelle partie, nouveau tableau : appelé à chaque (re)chargement des playlists.
   const resetParty = useCallback(() => {
     setParty({ players: [], teams: [] })
@@ -138,6 +148,7 @@ export function useScores() {
     mergeIntoTeam,
     leaveTeam,
     dissolveTeams,
+    renameTeam,
     resetParty,
     resetOverall,
   }

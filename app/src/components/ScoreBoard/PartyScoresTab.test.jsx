@@ -8,6 +8,7 @@ function buildScores(overrides = {}) {
     dissolveTeams: vi.fn(),
     leaveTeam: vi.fn(),
     mergeIntoTeam: vi.fn(),
+    renameTeam: vi.fn(),
     ...overrides,
   }
 }
@@ -47,6 +48,80 @@ describe('PartyScoresTab', () => {
     expect(screen.getByText('1,5 pts')).toBeInTheDocument()
     expect(screen.getByText('0,5 pt')).toBeInTheDocument()
     expect(screen.getByText('1 pt')).toBeInTheDocument()
+  })
+
+  it('shows a custom team name instead of the auto-generated one, once set', () => {
+    const scores = buildScores({
+      party: {
+        players: [
+          { name: 'Marie', points: 0 },
+          { name: 'Tom', points: 0 },
+        ],
+        teams: [{ id: 't1', memberNames: ['Marie', 'Tom'], name: 'Les Champions' }],
+      },
+    })
+    render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+    expect(screen.getByText('Les Champions')).toBeInTheDocument()
+    expect(screen.queryByText('Marie & Tom')).not.toBeInTheDocument()
+  })
+
+  describe('renaming a team (animateur can rename)', () => {
+    function renderWithTeam() {
+      const scores = buildScores({
+        party: {
+          players: [
+            { name: 'Marie', points: 0 },
+            { name: 'Tom', points: 0 },
+          ],
+          teams: [{ id: 't1', memberNames: ['Marie', 'Tom'] }],
+        },
+      })
+      render(<PartyScoresTab scores={scores} buzz={{}} />)
+      return scores
+    }
+
+    it('clicking the team name reveals an editable input pre-filled with the current name', () => {
+      renderWithTeam()
+
+      fireEvent.click(screen.getByLabelText("Renommer l'équipe Marie & Tom"))
+      expect(screen.getByDisplayValue('Marie & Tom')).toBeInTheDocument()
+    })
+
+    it('commits the new name on Enter', () => {
+      const scores = renderWithTeam()
+
+      fireEvent.click(screen.getByLabelText("Renommer l'équipe Marie & Tom"))
+      const input = screen.getByDisplayValue('Marie & Tom')
+      fireEvent.change(input, { target: { value: 'Les Champions' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      expect(scores.renameTeam).toHaveBeenCalledWith('t1', 'Les Champions')
+      expect(screen.queryByDisplayValue('Les Champions')).not.toBeInTheDocument()
+    })
+
+    it('commits the new name on blur (click away)', () => {
+      const scores = renderWithTeam()
+
+      fireEvent.click(screen.getByLabelText("Renommer l'équipe Marie & Tom"))
+      const input = screen.getByDisplayValue('Marie & Tom')
+      fireEvent.change(input, { target: { value: 'Les Champions' } })
+      fireEvent.blur(input)
+
+      expect(scores.renameTeam).toHaveBeenCalledWith('t1', 'Les Champions')
+    })
+
+    it('discards the edit on Escape without calling renameTeam', () => {
+      const scores = renderWithTeam()
+
+      fireEvent.click(screen.getByLabelText("Renommer l'équipe Marie & Tom"))
+      const input = screen.getByDisplayValue('Marie & Tom')
+      fireEvent.change(input, { target: { value: 'Oops' } })
+      fireEvent.keyDown(input, { key: 'Escape' })
+
+      expect(scores.renameTeam).not.toHaveBeenCalled()
+      expect(screen.getByText('Marie & Tom')).toBeInTheDocument()
+    })
   })
 
   it('calls leaveTeam when a member × is clicked', () => {

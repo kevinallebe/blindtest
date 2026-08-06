@@ -110,9 +110,46 @@
 }
 
 .cbt-team-card__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 8px;
+  font-family: var(--font-body);
   font-weight: 800;
   font-size: 15px;
   color: var(--color-text);
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.cbt-team-card__name:hover {
+  background: oklch(0.3 0.02 240);
+}
+
+.cbt-team-card__rename-icon {
+  font-size: 12px;
+  color: oklch(0.6 0.02 240);
+}
+
+.cbt-team-card__name-input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--color-accent-teal);
+  background: oklch(0.15 0.02 240);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.cbt-team-card__name-input:focus {
+  outline: none;
 }
 
 .cbt-team-card__total {

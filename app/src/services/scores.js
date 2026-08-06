@@ -37,11 +37,18 @@ export function setStoredPartyScores(party) {
 }
 
 // "Marie" / "Marie & Tom" / "Marie, Tom & Léa" — nom d'équipe auto-généré à partir des membres,
-// pas de champ éditable dans le spec (US-15.1).
+// utilisé tant que l'animateur n'a pas choisi un nom personnalisé (team.name, voir renameTeam).
 export function formatTeamName(memberNames) {
   if (memberNames.length <= 1) return memberNames[0] ?? ''
   if (memberNames.length === 2) return memberNames.join(' & ')
   return `${memberNames.slice(0, -1).join(', ')} & ${memberNames[memberNames.length - 1]}`
+}
+
+// Nom personnalisé, en plus du nom auto-généré — un nom vide (ou uniquement des espaces) efface
+// la personnalisation et revient à formatTeamName(memberNames).
+export function renameTeam(teams, teamId, name) {
+  const trimmed = name.trim()
+  return teams.map((team) => (team.id === teamId ? { ...team, name: trimmed || undefined } : team))
 }
 
 // Ajoute les noms pas encore présents, à 0 pt — filet de sécurité US-16.4 (buzz) et US-16.2

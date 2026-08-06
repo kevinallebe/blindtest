@@ -99,6 +99,19 @@ describe('useScores', () => {
     expect(result.current.party.teams).toEqual([])
   })
 
+  it('renames a team, and clears the custom name back to auto-generated with a blank name', () => {
+    const { result } = renderScoresHook()
+    act(() => result.current.registerPlayers(['Marie', 'Tom']))
+    act(() => result.current.mergeIntoTeam('Marie', { type: 'player', name: 'Tom' }))
+    const teamId = result.current.party.teams[0].id
+
+    act(() => result.current.renameTeam(teamId, 'Les Champions'))
+    expect(result.current.party.teams[0].name).toBe('Les Champions')
+
+    act(() => result.current.renameTeam(teamId, '   '))
+    expect(result.current.party.teams[0].name).toBeUndefined()
+  })
+
   it('resetParty empties players and teams but leaves overall untouched', () => {
     const { result } = renderScoresHook()
     act(() => result.current.registerPlayers(['Marie']))

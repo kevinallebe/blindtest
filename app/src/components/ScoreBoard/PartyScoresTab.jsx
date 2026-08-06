@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { formatTeamName } from '../../services/scores.js'
 import { formatPoints } from '../../utils/points.js'
 import './PartyScoresTab.css'
@@ -90,6 +90,7 @@ export default function PartyScoresTab({ scores, buzz }) {
             team={team}
             players={party.players}
             onLeave={scores.leaveTeam}
+            onRename={scores.renameTeam}
             isDropTarget={dropTargetKey === team.id}
             onDragOver={handleDragOver(team.id)}
             onDragLeave={handleDragLeave(team.id)}
@@ -130,9 +131,35 @@ export default function PartyScoresTab({ scores, buzz }) {
   )
 }
 
-function TeamCard({ team, players, onLeave, isDropTarget, onDragOver, onDragLeave, onDrop }) {
+function TeamCard({ team, players, onLeave, onRename, isDropTarget, onDragOver, onDragLeave, onDrop }) {
   const members = team.memberNames.map((name) => players.find((player) => player.name === name)).filter(Boolean)
   const total = members.reduce((sum, member) => sum + member.points, 0)
+  const displayName = team.name || formatTeamName(team.memberNames)
+
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState(displayName)
+  // Un input contrôlé qui a le focus peut déclencher un blur natif au démontage (selon le
+  // navigateur) : sans ce garde-fou, Échap déclencherait quand même commitEditing juste après.
+  const skipNextBlurCommit = useRef(false)
+
+  function startEditing() {
+    setNameDraft(displayName)
+    setIsEditingName(true)
+  }
+
+  function commitEditing() {
+    if (skipNextBlurCommit.current) {
+      skipNextBlurCommit.current = false
+    } else {
+      onRename(team.id, nameDraft)
+    }
+    setIsEditingName(false)
+  }
+
+  function cancelEditing() {
+    skipNextBlurCommit.current = true
+    setIsEditingName(false)
+  }
 
   return (
     <div
@@ -143,7 +170,35 @@ function TeamCard({ team, players, onLeave, isDropTarget, onDragOver, onDragLeav
     >
       <div className="cbt-team-card__header">
         <i className="bi bi-grip-vertical" />
-        <div className="cbt-team-card__name">{formatTeamName(team.memberNames)}</div>
+        {isEditingName ? (
+          <input
+            type="text"
+            className="cbt-team-card__name-input"
+            value={nameDraft}
+            onChange={(event) => setNameDraft(event.target.value)}
+            onBlur={commitEditing}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                commitEditing()
+              } else if (event.key === 'Escape') {
+                event.preventDefault()
+                cancelEditing()
+              }
+            }}
+            autoFocus
+          />
+        ) : (
+          <button
+            type="button"
+            className="cbt-team-card__name"
+            onClick={startEditing}
+            aria-label={`Renommer l'équipe ${displayName}`}
+          >
+            {displayName}
+            <i className="bi bi-pencil cbt-team-card__rename-icon" />
+          </button>
+        )}
         {isDropTarget ? (
           <div className="cbt-team-card__drop-label">Déposer pour fusionner</div>
         ) : (

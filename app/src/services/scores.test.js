@@ -7,6 +7,7 @@ import {
   getStoredPartyScores,
   leaveTeam,
   mergeIntoTeam,
+  renameTeam,
   setStoredOverallScores,
   setStoredPartyScores,
 } from './scores.js'
@@ -135,5 +136,30 @@ describe('leaveTeam', () => {
   it('keeps the team intact when it still has 2+ members after leaving', () => {
     const teams = [{ id: 't1', memberNames: ['Marie', 'Tom', 'Léa'] }]
     expect(leaveTeam(teams, 'Marie')).toEqual([{ id: 't1', memberNames: ['Tom', 'Léa'] }])
+  })
+})
+
+describe('renameTeam', () => {
+  it('sets a custom name on the matching team, leaving others untouched', () => {
+    const teams = [
+      { id: 't1', memberNames: ['Marie', 'Tom'] },
+      { id: 't2', memberNames: ['Léa', 'Nico'] },
+    ]
+    expect(renameTeam(teams, 't1', 'Les Champions')).toEqual([
+      { id: 't1', memberNames: ['Marie', 'Tom'], name: 'Les Champions' },
+      { id: 't2', memberNames: ['Léa', 'Nico'] },
+    ])
+  })
+
+  it('trims the name', () => {
+    const teams = [{ id: 't1', memberNames: ['Marie', 'Tom'] }]
+    expect(renameTeam(teams, 't1', '  Les Champions  ')).toEqual([
+      { id: 't1', memberNames: ['Marie', 'Tom'], name: 'Les Champions' },
+    ])
+  })
+
+  it('clears a custom name back to auto-generated when given an empty/blank string', () => {
+    const teams = [{ id: 't1', memberNames: ['Marie', 'Tom'], name: 'Les Champions' }]
+    expect(renameTeam(teams, 't1', '   ')).toEqual([{ id: 't1', memberNames: ['Marie', 'Tom'], name: undefined }])
   })
 })
