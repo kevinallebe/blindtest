@@ -7,11 +7,11 @@ import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
 import TrackInfo from './components/TrackInfo.jsx'
 import { useBuzzSocket } from './hooks/useBuzzSocket.js'
+import { useGameSettings } from './hooks/useGameSettings.js'
 import { useQueue } from './hooks/useQueue.js'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
-import { clampTimerDuration, useTimer } from './hooks/useTimer.js'
+import { useTimer } from './hooks/useTimer.js'
 import { playTrack } from './services/spotify.js'
-import { getStoredTimerDuration, setStoredTimerDuration } from './services/storage.js'
 import { getValidAccessToken } from './spotifyToken.js'
 
 function App() {
@@ -19,6 +19,7 @@ function App() {
   const { status, error, connect } = spotifyPlayer
   const queue = useQueue()
   const buzz = useBuzzSocket()
+  const settings = useGameSettings()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
@@ -31,17 +32,25 @@ function App() {
         onSettings={() => setShowSettings(true)}
       />
       <main className="cbt-placeholder">
-        <SpotifyAuthGate status={status} error={error} onConnect={connect} queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />
+        <SpotifyAuthGate
+          status={status}
+          error={error}
+          onConnect={connect}
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buzz}
+          settings={settings}
+        />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} queue={queue} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} queue={queue} settings={settings} />}
     </>
   )
 }
 
-function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz }) {
+function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings }) {
   if (status === 'ready') {
-    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />
+    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={settings} />
   }
 
   if (status === 'connecting') {
@@ -75,12 +84,11 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz 
 
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
-export function GameScreen({ queue, spotifyPlayer, buzz }) {
+export function GameScreen({ queue, spotifyPlayer, buzz, settings }) {
   const { queue: tracks, isFinished, status: queueStatus, error: queueError, loadQueue, advance, currentTrack } = queue
-  const { deviceId, togglePlay, pause, activateElement, onPlaybackStateChanged } = spotifyPlayer
+  const { deviceId, togglePlay, pause, setVolume, activateElement, onPlaybackStateChanged } = spotifyPlayer
 
-  const [duration, setDuration] = useState(() => getStoredTimerDuration())
-  const timer = useTimer(duration)
+  const timer = useTimer(settings.timerDuration)
   // idle -> playing -> paused (manuel ou fin de timer) -> revealed -> (Nouvelle musique) -> playing...
   const [roundStage, setRoundStage] = useState('idle')
   const [activeTrack, setActiveTrack] = useState(null)
@@ -100,13 +108,12 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzz.buzzes])
 
-  function changeDuration(delta) {
-    setDuration((current) => {
-      const next = clampTimerDuration(current + delta)
-      setStoredTimerDuration(next)
-      return next
-    })
-  }
+  // Réglages > Jeu peut changer le volume pendant une manche : on le répercute immédiatement sur
+  // le lecteur, sans attendre le prochain morceau.
+  useEffect(() => {
+    setVolume(settings.volume / 100)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.volume])
 
   function waitForPlaybackState(predicate, { timeoutMs = 8000 } = {}) {
     return new Promise((resolve, reject) => {
@@ -143,8 +150,14 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
       )
       setTimeout(() => {
         timer.start(() => {
-          pause()
-          setRoundStage('paused')
+          // Mode automatique (Réglages > Jeu) : la réponse s'affiche directement à la fin du
+          // timer, sans attendre un clic sur "Révéler la réponse".
+          if (settings.revealMode === 'auto') {
+            handleReveal()
+          } else {
+            pause()
+            setRoundStage('paused')
+          }
         })
       }, 1000)
     } catch (err) {
@@ -226,20 +239,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz }) {
       <div className="cbt-stage">
         <TrackInfo isActive={roundStage === 'playing'} revealed={isRevealed} track={isRevealed ? activeTrack : null} />
 
-        {!isRevealed && (
-          <>
-            <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />
-            <div className="cbt-stage__duration">
-              <button type="button" onClick={() => changeDuration(-5)} disabled={timer.isRunning}>
-                −
-              </button>
-              <span>Durée : {duration} s</span>
-              <button type="button" onClick={() => changeDuration(5)} disabled={timer.isRunning}>
-                +
-              </button>
-            </div>
-          </>
-        )}
+        {!isRevealed && <Timer secondsLeft={timer.secondsLeft} duration={timer.duration} />}
 
         {isFinished && isRevealed ? (
           <div className="cbt-auth-gate">

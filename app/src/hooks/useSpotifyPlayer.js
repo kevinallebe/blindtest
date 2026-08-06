@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clearToken, exchangeCodeForToken, getValidAccessToken, redirectToSpotifyAuthorize } from '../spotifyToken.js'
 import { fetchMe } from '../services/spotify.js'
+import { getStoredVolume } from '../services/storage.js'
 
 const ERROR_MESSAGES = {
   missing_client_id:
@@ -44,7 +45,7 @@ export function useSpotifyPlayer() {
       const Spotify = await loadSpotifySdk()
       const player = new Spotify.Player({
         name: 'Caribbean BlindTest',
-        volume: 0.7,
+        volume: getStoredVolume() / 100,
         getOAuthToken: async (cb) => {
           const token = await getValidAccessToken()
           if (!token) {
@@ -80,6 +81,7 @@ export function useSpotifyPlayer() {
 
   const togglePlay = useCallback(() => playerRef.current?.togglePlay(), [])
   const pause = useCallback(() => playerRef.current?.pause(), [])
+  const setVolume = useCallback((volume) => playerRef.current?.setVolume(volume), [])
 
   // À appeler de façon synchrone dans un gestionnaire de clic, avant tout `await`. Sans ça, après
   // un chargement/refresh de page, le navigateur bloque l'audio du SDK (Spotify Connect indique
@@ -149,6 +151,7 @@ export function useSpotifyPlayer() {
     connect,
     togglePlay,
     pause,
+    setVolume,
     activateElement,
     onPlaybackStateChanged,
   }

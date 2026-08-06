@@ -28,6 +28,7 @@ function buildSpotifyPlayer(onStateChangeHolder) {
     deviceId: 'device1',
     togglePlay: vi.fn(),
     pause: vi.fn(),
+    setVolume: vi.fn(),
     activateElement: vi.fn(),
     onPlaybackStateChanged: (callback) => {
       onStateChangeHolder.current = callback
@@ -45,6 +46,19 @@ function buildBuzz(overrides = {}) {
   }
 }
 
+// Durée courte par défaut pour ne pas avoir à avancer les timers trop longtemps dans les tests.
+function buildSettings(overrides = {}) {
+  return {
+    timerDuration: 3,
+    setTimerDuration: vi.fn(),
+    volume: 70,
+    setVolume: vi.fn(),
+    revealMode: 'manual',
+    setRevealMode: vi.fn(),
+    ...overrides,
+  }
+}
+
 async function flushMicrotasks() {
   await Promise.resolve()
   await Promise.resolve()
@@ -55,7 +69,6 @@ describe('GameScreen — playback/timer orchestration', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     localStorage.clear()
-    localStorage.setItem('cbt_timer_duration', '3')
     getValidAccessToken.mockResolvedValue('token')
     spotifyService.playTrack.mockResolvedValue(undefined)
   })
@@ -71,7 +84,7 @@ describe('GameScreen — playback/timer orchestration', () => {
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
     const buzz = buildBuzz()
 
-    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
+    render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />)
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -89,7 +102,7 @@ describe('GameScreen — playback/timer orchestration', () => {
     })
     act(() => vi.advanceTimersByTime(1000))
 
-    // Laisse le timer de 3s (voir cbt_timer_duration ci-dessus) se terminer naturellement
+    // Laisse le timer de 3s se terminer naturellement
     act(() => vi.advanceTimersByTime(3000))
 
     expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
@@ -110,7 +123,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const queue = buildQueue()
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
 
-    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buildBuzz()} />)
+    const { rerender } = render(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buildBuzz()} settings={buildSettings()} />,
+    )
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -129,6 +144,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         queue={queue}
         spotifyPlayer={spotifyPlayer}
         buzz={buildBuzz({ buzzes: [{ name: 'Marie-Lou', reactionTime: 620 }] })}
+        settings={buildSettings()}
       />,
     )
 
@@ -146,6 +162,7 @@ describe('GameScreen — playback/timer orchestration', () => {
             { name: 'Jonas', reactionTime: 910 },
           ],
         })}
+        settings={buildSettings()}
       />,
     )
     expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
@@ -157,7 +174,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
     const buzz = buildBuzz()
 
-    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
+    const { rerender } = render(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />,
+    )
 
     await act(async () => {
       fireEvent.click(screen.getByText('Nouvelle musique'))
@@ -172,6 +191,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         queue={buildQueue({ currentTrack: null, isFinished: true, advance: queue.advance, loadQueue: queue.loadQueue })}
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
+        settings={buildSettings()}
       />,
     )
 
@@ -185,7 +205,9 @@ describe('GameScreen — playback/timer orchestration', () => {
     const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
     const buzz = buildBuzz()
 
-    const { rerender } = render(<GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} />)
+    const { rerender } = render(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} />,
+    )
 
     // Lance trackA
     await act(async () => {
@@ -204,6 +226,7 @@ describe('GameScreen — playback/timer orchestration', () => {
         queue={buildQueue({ queue: [trackA, trackB], currentTrack: trackB, advance: queue.advance, loadQueue: queue.loadQueue })}
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
+        settings={buildSettings()}
       />,
     )
 
@@ -230,5 +253,54 @@ describe('GameScreen — playback/timer orchestration', () => {
       await flushMicrotasks()
     })
     expect(spotifyService.playTrack).toHaveBeenNthCalledWith(2, 'token', 'device1', trackB.uri)
+  })
+
+  it('reveals automatically at the end of the timer when revealMode is "auto"', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue()
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
+
+    render(
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
+        settings={buildSettings({ revealMode: 'auto' })}
+      />,
+    )
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    act(() => vi.advanceTimersByTime(1000))
+
+    // Le timer de 3s se termine tout seul : la réponse doit s'afficher sans clic sur "Révéler"
+    act(() => vi.advanceTimersByTime(3000))
+
+    expect(screen.getByText('X — A')).toBeInTheDocument()
+    expect(screen.queryByText('Révéler la réponse')).not.toBeInTheDocument()
+  })
+
+  it('applies the configured volume to the player and keeps it in sync live', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue()
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
+
+    const { rerender } = render(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings({ volume: 70 })} />,
+    )
+    expect(spotifyPlayer.setVolume).toHaveBeenLastCalledWith(0.7)
+
+    rerender(
+      <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings({ volume: 30 })} />,
+    )
+    expect(spotifyPlayer.setVolume).toHaveBeenLastCalledWith(0.3)
   })
 })

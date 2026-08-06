@@ -1,0 +1,65 @@
+.cbt-game-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.cbt-game-settings__label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--color-accent-teal);
+  margin: 0 0 16px;
+}
+
+.cbt-game-settings__row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.cbt-game-settings__row input[type='range'] {
+  flex: 1;
+  accent-color: var(--color-accent-teal);
+}
+
+.cbt-game-settings__value {
+  min-width: 56px;
+  text-align: right;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--color-text);
+}
+
+.cbt-game-settings__toggle {
+  display: flex;
+  gap: 12px;
+}
+
+.cbt-game-settings__toggle-btn {
+  flex: 1;
+  border: 2px solid oklch(0.4 0.02 240);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.cbt-game-settings__toggle-btn--active {
+  border-color: var(--color-accent-teal);
+  background: oklch(0.35 0.1 190 / 0.2);
+  color: var(--color-text);
+}
+
+.cbt-game-settings__hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: oklch(0.62 0.02 240);
+  margin: 12px 0 0;
+}

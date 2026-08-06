@@ -1,9 +1,12 @@
 // Phase 4 — persistance de la queue/currentIndex (US-5.2).
-// Phase 8 unifiera ici le reste du schéma (settings) sous un versionnage commun.
 const QUEUE_KEY = 'cbt_played_queue'
 const CURRENT_INDEX_KEY = 'cbt_current_index'
 const TIMER_DURATION_KEY = 'cbt_timer_duration'
+const VOLUME_KEY = 'cbt_volume'
+const REVEAL_MODE_KEY = 'cbt_reveal_mode'
 const DEFAULT_TIMER_DURATION = 20
+const DEFAULT_VOLUME = 70
+const DEFAULT_REVEAL_MODE = 'manual'
 
 export function getStoredQueue() {
   const raw = localStorage.getItem(QUEUE_KEY)
@@ -38,4 +41,24 @@ export function getStoredTimerDuration() {
 
 export function setStoredTimerDuration(duration) {
   localStorage.setItem(TIMER_DURATION_KEY, String(duration))
+}
+
+export function getStoredVolume() {
+  const raw = localStorage.getItem(VOLUME_KEY)
+  if (raw === null) return DEFAULT_VOLUME
+  const parsed = Number(raw)
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 100 ? parsed : DEFAULT_VOLUME
+}
+
+export function setStoredVolume(volume) {
+  localStorage.setItem(VOLUME_KEY, String(volume))
+}
+
+export function getStoredRevealMode() {
+  const stored = localStorage.getItem(REVEAL_MODE_KEY)
+  return stored === 'auto' ? 'auto' : DEFAULT_REVEAL_MODE
+}
+
+export function setStoredRevealMode(mode) {
+  localStorage.setItem(REVEAL_MODE_KEY, mode === 'auto' ? 'auto' : 'manual')
 }
