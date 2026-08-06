@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   addPlaylist,
   getPlaylists,
   getSpotifyClientId,
   removePlaylist,
   setSpotifyClientId,
+  updatePlaylistName,
 } from '../../services/adminConfig.js'
+import { fetchPlaylistMeta } from '../../services/spotify.js'
 import './AdminTab.css'
 
 export default function AdminTab({ queue = {} }) {
@@ -22,6 +24,20 @@ export default function AdminTab({ queue = {} }) {
   const [playlists, setPlaylists] = useState(() => getPlaylists())
   const [playlistUrl, setPlaylistUrl] = useState('')
   const [playlistError, setPlaylistError] = useState(null)
+  const fetchedNameIds = useRef(new Set())
+
+  // Résout le titre des playlists dont le nom n'a pas encore été chargé depuis Spotify.
+  useEffect(() => {
+    const missing = playlists.filter(
+      (playlist) => playlist.name == null && !fetchedNameIds.current.has(playlist.id),
+    )
+    for (const playlist of missing) {
+      fetchedNameIds.current.add(playlist.id)
+      fetchPlaylistMeta(playlist.id)
+        .then((meta) => setPlaylists(updatePlaylistName(playlist.id, meta.name)))
+        .catch(() => {})
+    }
+  }, [playlists])
 
   function handleSaveClientId(event) {
     event.preventDefault()

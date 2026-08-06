@@ -98,6 +98,46 @@
   color: var(--color-text-muted);
 }
 
+.cbt-buzz-entry__answer-timer {
+  min-width: 38px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 15px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--color-accent-orange);
+  background: oklch(0.32 0.05 30 / 0.35);
+  border: 1px solid oklch(0.5 0.1 30 / 0.5);
+}
+
+.cbt-buzz-entry__answer-timer--urgent {
+  animation: cbt-answer-timer-urgent 0.6s ease-in-out infinite;
+}
+
+.cbt-buzz-entry__answer-timer--elapsed {
+  color: oklch(0.65 0.24 25);
+  background: oklch(0.32 0.15 25 / 0.35);
+  border-color: oklch(0.65 0.24 25 / 0.6);
+  animation: none;
+}
+
+@keyframes cbt-answer-timer-urgent {
+  0%,
+  100% {
+    transform: scale(1);
+    color: var(--color-accent-orange);
+    background: oklch(0.32 0.05 30 / 0.35);
+    border-color: oklch(0.5 0.1 30 / 0.5);
+  }
+  50% {
+    transform: scale(1.18);
+    color: oklch(0.65 0.24 25);
+    background: oklch(0.32 0.15 25 / 0.45);
+    border-color: oklch(0.65 0.24 25 / 0.7);
+  }
+}
+
 .cbt-buzz-entry--gold .cbt-buzz-entry__time {
   color: oklch(0.75 0.13 85);
 }

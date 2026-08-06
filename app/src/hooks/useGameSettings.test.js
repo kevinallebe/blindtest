@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getStoredRevealMode, getStoredTimerDuration, getStoredVolume } from '../services/storage.js'
+import {
+  getStoredAnswerTimerDuration,
+  getStoredRevealMode,
+  getStoredTimerDuration,
+  getStoredVolume,
+} from '../services/storage.js'
 import { useGameSettings } from './useGameSettings.js'
 
 beforeEach(() => {
@@ -13,6 +18,7 @@ describe('useGameSettings', () => {
     expect(result.current.timerDuration).toBe(20)
     expect(result.current.volume).toBe(70)
     expect(result.current.revealMode).toBe('manual')
+    expect(result.current.answerTimerDuration).toBe(5)
   })
 
   it('setTimerDuration clamps to 3-60s and persists', () => {
@@ -24,6 +30,17 @@ describe('useGameSettings', () => {
 
     act(() => result.current.setTimerDuration(0))
     expect(result.current.timerDuration).toBe(3)
+  })
+
+  it('setAnswerTimerDuration clamps to 3-30s and persists', () => {
+    const { result } = renderHook(() => useGameSettings())
+
+    act(() => result.current.setAnswerTimerDuration(45))
+    expect(result.current.answerTimerDuration).toBe(30)
+    expect(getStoredAnswerTimerDuration()).toBe(30)
+
+    act(() => result.current.setAnswerTimerDuration(0))
+    expect(result.current.answerTimerDuration).toBe(3)
   })
 
   it('setVolume clamps to 0-100 and persists', () => {

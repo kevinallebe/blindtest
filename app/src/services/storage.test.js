@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   clearQueueState,
+  getStoredAnswerTimerDuration,
   getStoredCurrentIndex,
   getStoredQueue,
   getStoredRevealMode,
   getStoredTimerDuration,
   getStoredVolume,
   persistQueueState,
+  setStoredAnswerTimerDuration,
   setStoredRevealMode,
   setStoredTimerDuration,
   setStoredVolume,
@@ -66,6 +68,17 @@ describe('volume persistence', () => {
   it('falls back to the default for an out-of-range stored value', () => {
     localStorage.setItem('cbt_volume', '150')
     expect(getStoredVolume()).toBe(70)
+  })
+})
+
+describe('answer timer duration persistence', () => {
+  it('defaults to 5s when nothing is stored', () => {
+    expect(getStoredAnswerTimerDuration()).toBe(5)
+  })
+
+  it('round-trips a stored duration', () => {
+    setStoredAnswerTimerDuration(12)
+    expect(getStoredAnswerTimerDuration()).toBe(12)
   })
 })
 

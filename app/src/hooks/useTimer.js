@@ -2,9 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 const MIN_DURATION = 3
 const MAX_DURATION = 60
+const MIN_ANSWER_DURATION = 3
+const MAX_ANSWER_DURATION = 30
 
 export function clampTimerDuration(duration) {
   return Math.min(MAX_DURATION, Math.max(MIN_DURATION, duration))
+}
+
+export function clampAnswerTimerDuration(duration) {
+  return Math.min(MAX_ANSWER_DURATION, Math.max(MIN_ANSWER_DURATION, duration))
 }
 
 // Compte à rebours pur (3-60s, clampé). Le délai d'1s avant démarrage réel après confirmation de

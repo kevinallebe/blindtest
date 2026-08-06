@@ -72,6 +72,16 @@ function toTrack(track) {
   }
 }
 
+export async function fetchPlaylistMeta(playlistId) {
+  const response = await spotifyFetch(
+    `https://api.spotify.com/v1/playlists/${playlistId}?fields=${encodeURIComponent('name')}`,
+  )
+  if (!response.ok) {
+    throw new SpotifyApiError('http_error', `spotify_playlist_meta_failed_${response.status}`, response.status)
+  }
+  return response.json()
+}
+
 export async function fetchPlaylistTracks(playlistId) {
   const tracks = []
   let url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?fields=${encodeURIComponent(TRACK_FIELDS)}&limit=100`

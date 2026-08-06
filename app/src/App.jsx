@@ -105,6 +105,10 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
     spotifyPlayer
 
   const timer = useTimer(settings.timerDuration)
+  // Timer de réponse : démarre dès qu'un joueur buzze, pour le limiter dans le temps de réponse
+  // (distinct du timer de manche `timer`, qui s'arrête au premier buzz).
+  const answerTimer = useTimer(settings.answerTimerDuration)
+  const [isAnswerTimerActive, setIsAnswerTimerActive] = useState(false)
   // idle -> playing -> paused (manuel ou fin de timer) -> revealed -> (Nouvelle musique) -> playing...
   const [roundStage, setRoundStage] = useState('idle')
   const [activeTrack, setActiveTrack] = useState(null)
@@ -120,6 +124,8 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
     if (buzz.buzzes.length === 0 || roundStage !== 'playing') return
     pause()
     timer.stop()
+    answerTimer.start()
+    setIsAnswerTimerActive(true)
     setRoundStage('paused')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzz.buzzes])
@@ -159,6 +165,8 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
       setRoundStage('playing')
       // US-9.4 — remet les buzz à zéro côté serveur pour tous les joueurs au lancement de la manche.
       buzz.startRound()
+      answerTimer.stop()
+      setIsAnswerTimerActive(false)
 
       await waitForPlaybackState(
         (state) => state?.paused === false && state?.track_window?.current_track?.uri === trackToPlay.uri,
@@ -212,6 +220,8 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
 
   function handleReveal() {
     timer.stop()
+    answerTimer.stop()
+    setIsAnswerTimerActive(false)
     pause()
     setIsRevealedPlaying(false)
     setRoundStage('revealed')
@@ -294,7 +304,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
         {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}
       </div>
 
-      <BuzzList buzzes={buzz.buzzes} />
+      <BuzzList buzzes={buzz.buzzes} answerTimer={isAnswerTimerActive ? answerTimer : null} />
     </div>
   )
 }

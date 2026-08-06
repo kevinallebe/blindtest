@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clampTimerDuration, useTimer } from './useTimer.js'
+import { clampAnswerTimerDuration, clampTimerDuration, useTimer } from './useTimer.js'
 
 describe('clampTimerDuration', () => {
   it('clamps values below 3 up to 3', () => {
@@ -14,6 +14,20 @@ describe('clampTimerDuration', () => {
 
   it('keeps in-range values untouched', () => {
     expect(clampTimerDuration(20)).toBe(20)
+  })
+})
+
+describe('clampAnswerTimerDuration', () => {
+  it('clamps values below 3 up to 3', () => {
+    expect(clampAnswerTimerDuration(0)).toBe(3)
+  })
+
+  it('clamps values above 30 down to 30', () => {
+    expect(clampAnswerTimerDuration(120)).toBe(30)
+  })
+
+  it('keeps in-range values untouched', () => {
+    expect(clampAnswerTimerDuration(5)).toBe(5)
   })
 })
 

@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react'
 import {
+  getStoredAnswerTimerDuration,
   getStoredRevealMode,
   getStoredTimerDuration,
   getStoredVolume,
+  setStoredAnswerTimerDuration,
   setStoredRevealMode,
   setStoredTimerDuration,
   setStoredVolume,
 } from '../services/storage.js'
-import { clampTimerDuration } from './useTimer.js'
+import { clampAnswerTimerDuration, clampTimerDuration } from './useTimer.js'
 
 function clampVolume(volume) {
   return Math.min(100, Math.max(0, Math.round(volume)))
@@ -20,11 +22,18 @@ export function useGameSettings() {
   const [timerDuration, setTimerDurationState] = useState(() => getStoredTimerDuration())
   const [volume, setVolumeState] = useState(() => getStoredVolume())
   const [revealMode, setRevealModeState] = useState(() => getStoredRevealMode())
+  const [answerTimerDuration, setAnswerTimerDurationState] = useState(() => getStoredAnswerTimerDuration())
 
   const setTimerDuration = useCallback((value) => {
     const clamped = clampTimerDuration(value)
     setStoredTimerDuration(clamped)
     setTimerDurationState(clamped)
+  }, [])
+
+  const setAnswerTimerDuration = useCallback((value) => {
+    const clamped = clampAnswerTimerDuration(value)
+    setStoredAnswerTimerDuration(clamped)
+    setAnswerTimerDurationState(clamped)
   }, [])
 
   const setVolume = useCallback((value) => {
@@ -39,5 +48,14 @@ export function useGameSettings() {
     setRevealModeState(normalized)
   }, [])
 
-  return { timerDuration, setTimerDuration, volume, setVolume, revealMode, setRevealMode }
+  return {
+    timerDuration,
+    setTimerDuration,
+    volume,
+    setVolume,
+    revealMode,
+    setRevealMode,
+    answerTimerDuration,
+    setAnswerTimerDuration,
+  }
 }

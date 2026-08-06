@@ -4,9 +4,11 @@ const CURRENT_INDEX_KEY = 'cbt_current_index'
 const TIMER_DURATION_KEY = 'cbt_timer_duration'
 const VOLUME_KEY = 'cbt_volume'
 const REVEAL_MODE_KEY = 'cbt_reveal_mode'
+const ANSWER_TIMER_DURATION_KEY = 'cbt_answer_timer_duration'
 const DEFAULT_TIMER_DURATION = 20
 const DEFAULT_VOLUME = 70
 const DEFAULT_REVEAL_MODE = 'manual'
+const DEFAULT_ANSWER_TIMER_DURATION = 5
 
 export function getStoredQueue() {
   const raw = localStorage.getItem(QUEUE_KEY)
@@ -52,6 +54,15 @@ export function getStoredVolume() {
 
 export function setStoredVolume(volume) {
   localStorage.setItem(VOLUME_KEY, String(volume))
+}
+
+export function getStoredAnswerTimerDuration() {
+  const parsed = Number(localStorage.getItem(ANSWER_TIMER_DURATION_KEY))
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_ANSWER_TIMER_DURATION
+}
+
+export function setStoredAnswerTimerDuration(duration) {
+  localStorage.setItem(ANSWER_TIMER_DURATION_KEY, String(duration))
 }
 
 export function getStoredRevealMode() {

@@ -33,4 +33,25 @@ describe('BuzzList', () => {
     render(<BuzzList buzzes={[]} />)
     expect(screen.getByText('Les buzz se remettent à zéro à chaque nouvelle manche.')).toBeInTheDocument()
   })
+
+  it('shows the answer timer next to the first buzzer only, in red once elapsed', () => {
+    const buzzes = [
+      { name: 'Marie-Lou', reactionTime: 620 },
+      { name: 'Jonas', reactionTime: 910 },
+    ]
+    const { rerender } = render(
+      <BuzzList buzzes={buzzes} answerTimer={{ secondsLeft: 5, duration: 5, isRunning: true }} />,
+    )
+    expect(screen.getByText('5s')).toBeInTheDocument()
+
+    rerender(<BuzzList buzzes={buzzes} answerTimer={{ secondsLeft: 0, duration: 5, isRunning: false }} />)
+    const badge = screen.getByText('0s')
+    expect(badge).toBeInTheDocument()
+    expect(badge.className).toContain('cbt-buzz-entry__answer-timer--elapsed')
+  })
+
+  it('hides the answer timer once nobody has buzzed or the round is not paused for an answer', () => {
+    render(<BuzzList buzzes={[{ name: 'Marie-Lou', reactionTime: 620 }]} answerTimer={null} />)
+    expect(screen.queryByText(/^\d+s$/)).not.toBeInTheDocument()
+  })
 })

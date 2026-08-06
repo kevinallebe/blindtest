@@ -1,7 +1,16 @@
 import './GameSettingsTab.css'
 
 export default function GameSettingsTab({ settings }) {
-  const { timerDuration, setTimerDuration, volume, setVolume, revealMode, setRevealMode } = settings
+  const {
+    timerDuration,
+    setTimerDuration,
+    volume,
+    setVolume,
+    revealMode,
+    setRevealMode,
+    answerTimerDuration,
+    setAnswerTimerDuration,
+  } = settings
 
   return (
     <div className="cbt-game-settings">
@@ -17,6 +26,23 @@ export default function GameSettingsTab({ settings }) {
           />
           <span className="cbt-game-settings__value">{timerDuration} s</span>
         </div>
+      </section>
+
+      <section>
+        <h3 className="cbt-game-settings__label">Durée du timer de réponse</h3>
+        <div className="cbt-game-settings__row">
+          <input
+            type="range"
+            min={3}
+            max={30}
+            value={answerTimerDuration}
+            onChange={(event) => setAnswerTimerDuration(Number(event.target.value))}
+          />
+          <span className="cbt-game-settings__value">{answerTimerDuration} s</span>
+        </div>
+        <p className="cbt-game-settings__hint">
+          Démarre dès qu'un joueur buzze, pour le limiter dans le temps de réponse.
+        </p>
       </section>
 
       <section>

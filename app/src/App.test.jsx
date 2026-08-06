@@ -56,6 +56,8 @@ function buildSettings(overrides = {}) {
     setVolume: vi.fn(),
     revealMode: 'manual',
     setRevealMode: vi.fn(),
+    answerTimerDuration: 3,
+    setAnswerTimerDuration: vi.fn(),
     ...overrides,
   }
 }
@@ -182,6 +184,53 @@ describe('GameScreen — playback/timer orchestration', () => {
       />,
     )
     expect(spotifyPlayer.pause).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts an answer timer next to the first buzzer, turns red at zero, and clears it on reveal', async () => {
+    const onStateChangeHolder = { current: null }
+    const queue = buildQueue()
+    const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+    const buzz = buildBuzz()
+
+    const { rerender } = render(
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
+        settings={buildSettings({ answerTimerDuration: 3 })}
+        showToast={showToast}
+      />,
+    )
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nouvelle musique'))
+      await flushMicrotasks()
+    })
+    await act(async () => {
+      onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+      await flushMicrotasks()
+    })
+    act(() => vi.advanceTimersByTime(1000))
+
+    // Un joueur buzze : le timer de réponse démarre à côté de son nom
+    rerender(
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buildBuzz({ buzzes: [{ name: 'Marie-Lou', reactionTime: 620 }] })}
+        settings={buildSettings({ answerTimerDuration: 3 })}
+        showToast={showToast}
+      />,
+    )
+    expect(screen.getByText('3s')).toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(3000))
+    const badge = screen.getByText('0s')
+    expect(badge.className).toContain('cbt-buzz-entry__answer-timer--elapsed')
+
+    // Révéler la réponse efface le timer de réponse
+    fireEvent.click(screen.getByText('Révéler la réponse'))
+    expect(screen.queryByText('0s')).not.toBeInTheDocument()
   })
 
   it('keeps showing the stage while still playing/revealing the last track (isFinished fires early)', async () => {

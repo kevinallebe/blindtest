@@ -10,15 +10,18 @@ function buildSettings(overrides = {}) {
     setVolume: vi.fn(),
     revealMode: 'manual',
     setRevealMode: vi.fn(),
+    answerTimerDuration: 5,
+    setAnswerTimerDuration: vi.fn(),
     ...overrides,
   }
 }
 
 describe('GameSettingsTab', () => {
   it('shows the current values', () => {
-    render(<GameSettingsTab settings={buildSettings({ timerDuration: 25, volume: 55 })} />)
+    render(<GameSettingsTab settings={buildSettings({ timerDuration: 25, volume: 55, answerTimerDuration: 8 })} />)
     expect(screen.getByText('25 s')).toBeInTheDocument()
     expect(screen.getByText('55%')).toBeInTheDocument()
+    expect(screen.getByText('8 s')).toBeInTheDocument()
   })
 
   it('calls setTimerDuration when the duration slider changes', () => {
@@ -29,6 +32,17 @@ describe('GameSettingsTab', () => {
       target: { value: '35' },
     })
     expect(settings.setTimerDuration).toHaveBeenCalledWith(35)
+  })
+
+  it('calls setAnswerTimerDuration when the answer timer slider changes', () => {
+    const settings = buildSettings()
+    render(<GameSettingsTab settings={settings} />)
+
+    fireEvent.change(
+      screen.getByText('Durée du timer de réponse').parentElement.querySelector('input[type="range"]'),
+      { target: { value: '10' } },
+    )
+    expect(settings.setAnswerTimerDuration).toHaveBeenCalledWith(10)
   })
 
   it('calls setVolume when the volume slider changes', () => {

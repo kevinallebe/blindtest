@@ -34,10 +34,15 @@ export function addPlaylist(url) {
   if (current.some((playlist) => playlist.id === id)) {
     throw new Error('Cette playlist est déjà dans la liste.')
   }
-  // name est renseigné plus tard par Phase 4 via l'API Spotify (GET /playlists/{id})
   return persistPlaylists([...current, { id, url: url.trim(), name: null }])
 }
 
 export function removePlaylist(id) {
   return persistPlaylists(getPlaylists().filter((playlist) => playlist.id !== id))
+}
+
+export function updatePlaylistName(id, name) {
+  return persistPlaylists(
+    getPlaylists().map((playlist) => (playlist.id === id ? { ...playlist, name } : playlist)),
+  )
 }
