@@ -1,5 +1,5 @@
 .cbt-buzz-list {
-  width: 340px;
+  width: 480px;
   max-width: 100%;
   background: var(--color-panel);
   border: 1px solid var(--color-panel-border);
@@ -140,6 +140,71 @@
 
 .cbt-buzz-entry--gold .cbt-buzz-entry__time {
   color: oklch(0.75 0.13 85);
+}
+
+.cbt-buzz-entry__points {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cbt-score-toggles {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cbt-score-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1.5px solid oklch(0.5 0.02 240);
+  background: transparent;
+  color: oklch(0.6 0.02 240);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.cbt-score-toggle:hover {
+  border-color: oklch(0.65 0.02 240);
+  color: oklch(0.85 0.01 240);
+}
+
+.cbt-score-toggle--artist-active,
+.cbt-score-toggle--title-active {
+  border-color: var(--color-accent-teal);
+  background: var(--color-accent-teal);
+  color: oklch(0.14 0.02 240);
+}
+
+.cbt-score-toggle--artist-active:hover,
+.cbt-score-toggle--title-active:hover {
+  border-color: var(--color-accent-teal);
+  color: oklch(0.14 0.02 240);
+}
+
+.cbt-score-toggle--both {
+  gap: 1px;
+  font-size: 11px;
+}
+
+.cbt-score-toggle--both-active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-gold));
+  color: oklch(0.14 0.02 240);
+}
+
+.cbt-score-toggle--both-active:hover {
+  border-color: transparent;
+  color: oklch(0.14 0.02 240);
 }
 
 .cbt-buzz-list__footer {

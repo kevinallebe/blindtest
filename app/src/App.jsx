@@ -12,10 +12,22 @@ import { useBrandingSettings } from './hooks/useBrandingSettings.js'
 import { useBuzzSocket } from './hooks/useBuzzSocket.js'
 import { useGameSettings } from './hooks/useGameSettings.js'
 import { useQueue } from './hooks/useQueue.js'
+import { useScores } from './hooks/useScores.js'
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer.js'
 import { useTimer } from './hooks/useTimer.js'
 import { useToast } from './hooks/useToast.js'
 import { playTrack } from './services/spotify.js'
+
+// Scores no-op par défaut — App.jsx passe toujours le vrai hook ; ce fallback évite à chaque test
+// de GameScreen (voir App.test.jsx) de devoir en construire un, comme pour les handlers de BuzzList.
+const NOOP_SCORES = {
+  roundScores: {},
+  toggleArtist: () => {},
+  toggleTitle: () => {},
+  toggleBoth: () => {},
+  resetRoundScores: () => {},
+  registerPlayers: () => {},
+}
 
 // Ignore les raccourcis clavier quand l'animateur est en train de saisir du texte (ex. un ID de
 // playlist dans Réglages > Admin), sans quoi "Entrée"/"R"/"B" interféreraient avec la saisie.
@@ -32,9 +44,20 @@ function App() {
   const buzz = useBuzzSocket()
   const settings = useGameSettings()
   const branding = useBrandingSettings()
+  const scores = useScores()
   const toast = useToast()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+
+  // US-14.2 — un rechargement de playlists (1er chargement, Réglages > Admin, ou fin de queue)
+  // marque le début d'une nouvelle partie : le scoreboard Partie repart de zéro.
+  const queueWithScoreReset = {
+    ...queue,
+    loadQueue: () => {
+      scores.resetParty()
+      queue.loadQueue()
+    },
+  }
 
   return (
     <>
@@ -51,24 +74,25 @@ function App() {
           status={status}
           error={error}
           onConnect={connect}
-          queue={queue}
+          queue={queueWithScoreReset}
           spotifyPlayer={spotifyPlayer}
           buzz={buzz}
           settings={settings}
+          scores={scores}
           showToast={toast.showToast}
           overlayOpen={showInvite || showSettings}
         />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
       {showSettings && (
-        <SettingsModal onClose={() => setShowSettings(false)} queue={queue} settings={settings} branding={branding} />
+        <SettingsModal onClose={() => setShowSettings(false)} queue={queueWithScoreReset} settings={settings} branding={branding} />
       )}
       <Toast message={toast.message} onDismiss={toast.dismissToast} />
     </>
   )
 }
 
-function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings, showToast, overlayOpen }) {
+function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings, scores, showToast, overlayOpen }) {
   if (status === 'ready') {
     return (
       <GameScreen
@@ -76,6 +100,7 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz,
         spotifyPlayer={spotifyPlayer}
         buzz={buzz}
         settings={settings}
+        scores={scores}
         showToast={showToast}
         overlayOpen={overlayOpen}
       />
@@ -113,7 +138,7 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz,
 
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
-export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, overlayOpen = false }) {
+export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP_SCORES, showToast, overlayOpen = false }) {
   const {
     queue: tracks,
     currentIndex = 0,
@@ -160,6 +185,14 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buzz.buzzes])
 
+  // Filet de sécurité US-16.4 — un joueur qui buzze réellement sans être passé par
+  // l'inscription apparaît quand même sur les deux scoreboards, à ce moment-là.
+  useEffect(() => {
+    if (buzz.buzzes.length === 0) return
+    scores.registerPlayers(buzz.buzzes.map((buzzEntry) => buzzEntry.name))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buzz.buzzes])
+
   // Réglages > Jeu peut changer le volume pendant une manche : on le répercute immédiatement sur
   // le lecteur, sans attendre le prochain morceau.
   useEffect(() => {
@@ -201,6 +234,9 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
       setRoundStage('playing')
       // US-9.4 — remet les buzz à zéro côté serveur pour tous les joueurs au lancement de la manche.
       buzz.startRound()
+      // US-13.2 — les toggles de score de la manche précédente ne sont plus corrigeables une fois
+      // une nouvelle musique lancée.
+      scores.resetRoundScores()
       answerTimer.stop()
       setIsAnswerTimerActive(false)
 
@@ -291,6 +327,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
       } else if (event.key === 'b' || event.key === 'B') {
         event.preventDefault()
         buzz.startRound()
+        scores.resetRoundScores()
       }
     }
 
@@ -368,7 +405,14 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, ov
         {playbackError && <p className="cbt-auth-gate__error">{playbackError}</p>}
       </div>
 
-      <BuzzList buzzes={buzz.buzzes} answerTimer={isAnswerTimerActive ? answerTimer : null} />
+      <BuzzList
+        buzzes={buzz.buzzes}
+        answerTimer={isAnswerTimerActive ? answerTimer : null}
+        roundScores={scores.roundScores}
+        onToggleArtist={scores.toggleArtist}
+        onToggleTitle={scores.toggleTitle}
+        onToggleBoth={scores.toggleBoth}
+      />
     </div>
   )
 }
