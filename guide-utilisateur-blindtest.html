@@ -508,6 +508,7 @@
     <a href="#ecran-animateur">L'écran animateur</a>
     <a href="#admin">Playlists &amp; Admin</a>
     <a href="#buzzer">Connecter les joueurs</a>
+    <a href="#scores-equipes">Scores, équipes &amp; inscriptions</a>
     <a href="#reglages-jeu">Réglages de jeu</a>
     <a href="#deroule">Déroulé d'une manche</a>
     <a href="#raccourcis">Raccourcis clavier</a>
@@ -651,6 +652,7 @@
         <span class="pill pill--on"><span class="pill__dot"></span>Spotify connecté</span>
         <span class="pill pill--on"><span class="pill__dot"></span>Buzzer connecté</span>
         <span class="btn-chip btn-chip--ghost">Inviter les joueurs</span>
+        <span class="btn-chip btn-chip--reveal">★ Scores</span>
         <span class="btn-chip btn-chip--ghost">Réglages</span>
       </div>
 
@@ -659,9 +661,9 @@
         <table>
           <thead><tr><th>Zone</th><th>Contenu</th></tr></thead>
           <tbody>
-            <tr><td><strong>Session</strong> (colonne gauche)</td><td>Playlists chargées, morceaux chargés, doublons retirés, progression de la manche en cours, réglages actifs.</td></tr>
+            <tr><td><strong>Session</strong> (colonne gauche)</td><td>Playlists chargées, morceaux chargés, doublons retirés, morceaux déjà joués exclus au rechargement, progression de la manche en cours, réglages actifs.</td></tr>
             <tr><td><strong>Scène</strong> (centre)</td><td>Pochette de l'extrait (masquée puis révélée), chrono, boutons Nouvelle musique / Pause / Révéler la réponse.</td></tr>
-            <tr><td><strong>Classement des buzz</strong> (colonne droite)</td><td>Les 5 premiers joueurs à avoir buzzé, avec médailles et temps de réaction.</td></tr>
+            <tr><td><strong>Classement des buzz</strong> (colonne droite)</td><td>Les 5 premiers joueurs à avoir buzzé, avec médailles, temps de réaction et boutons d'attribution de points (voir <a href="#scores-equipes">Scores, équipes &amp; inscriptions</a>).</td></tr>
           </tbody>
         </table>
       </div>
@@ -687,6 +689,24 @@
         compteur récapitule playlists / morceaux chargés / doublons retirés, à côté du bouton
         <span class="btn-chip btn-chip--neutral" style="margin: 0 4px;">Recharger les playlists</span> —
         utile en cours de soirée si tu ajoutes une nouvelle playlist ou si tu veux repartir sur un ordre mélangé.
+      </p>
+
+      <div class="callout">
+        <div class="callout__icon">🔁</div>
+        <p>
+          <strong>Recharger les playlists ne touche jamais à la partie en cours.</strong> Les morceaux déjà joués
+          sont mémorisés et ne seront pas retirés au tirage suivant, même après un rechargement — le compteur
+          « Déjà joués (exclus) » de la colonne Session indique combien ont été filtrés. Seul le bouton
+          <strong>Réinitialiser la partie</strong> (dans Scores → Partie, voir la section suivante) efface cet
+          historique et remet les scores à zéro.
+        </p>
+      </div>
+
+      <p style="margin-top: 18px;">
+        Si la lecture s'interrompt en pleine soirée avec une erreur <strong>403</strong> côté Spotify (session
+        devenue invalide sans que le compte ait perdu ses droits), un bouton <strong>Se reconnecter à Spotify</strong>
+        est disponible en bas de cet onglet. Il rafraîchit la connexion sans recharger les playlists ni toucher à la
+        partie en cours.
       </p>
     </section>
 
@@ -723,8 +743,67 @@
       </div>
     </section>
 
+    <section id="scores-equipes">
+      <div class="section__eyebrow">08 — Compétition</div>
+      <h2>Scores, équipes &amp; inscriptions</h2>
+      <p>
+        Le bouton doré <strong>★ Scores</strong> dans l'en-tête ouvre une fenêtre à deux onglets qui suit la
+        compétition : <strong>Partie</strong> pour la soirée en cours, <strong>Général</strong> pour un score cumulé
+        qui survit à plusieurs parties.
+      </p>
+
+      <h3 style="margin-top: 22px; font-size: 18px;">Attribuer des points</h3>
+      <p>
+        Dans le classement des buzz, chaque joueur qui a buzzé affiche trois boutons : <strong>Artiste</strong>
+        (0,5 pt), <strong>Titre</strong> (0,5 pt) et <strong>Les deux</strong> (1 pt). Ils sont réversibles — un
+        second clic retire les points — et se remettent à zéro automatiquement au lancement de la manche suivante.
+        Trouver l'artiste et le titre séparément équivaut à cliquer sur « Les deux » : dans les deux cas, le joueur
+        gagne 1 pt, jamais 2.
+      </p>
+
+      <h3 style="margin-top: 22px; font-size: 18px;">Onglet Partie — équipes par glisser-déposer</h3>
+      <p>
+        Chaque joueur qui a buzzé (ou qui s'est inscrit, voir plus bas) apparaît sur une ligne, classé par score
+        décroissant. Fais glisser un joueur sur un autre pour former une équipe, ou sur une équipe existante pour
+        l'y ajouter — un nom est généré automatiquement (« Marie &amp; Tom »), modifiable en cliquant dessus. Le
+        bouton × sur un membre le fait quitter l'équipe ; <strong>Dissoudre les équipes</strong> renvoie tout le
+        monde en individuel. Équipes et joueurs restent toujours triés par score décroissant, même après une
+        fusion.
+      </p>
+      <p>
+        <strong>Réinitialiser la partie</strong> (bouton orange, confirmation demandée) efface les scores de la
+        partie <em>et</em> l'historique des morceaux déjà joués — c'est la seule action qui remet vraiment la
+        soirée à zéro. Recharger les playlists, à l'inverse, ne touche jamais à la partie en cours.
+      </p>
+
+      <h3 style="margin-top: 22px; font-size: 18px;">Onglet Général — score cumulé</h3>
+      <p>
+        Indépendant de la partie en cours : les points s'additionnent soirée après soirée tant que tu ne cliques
+        pas sur <strong>Réinitialiser le score général</strong> (confirmation demandée). Le podium des trois
+        premiers est mis en évidence par une médaille.
+      </p>
+
+      <h3 style="margin-top: 22px; font-size: 18px;">Ouvrir les inscriptions</h3>
+      <p>
+        Le bouton <strong>Ouvrir les inscriptions</strong> bascule l'app Buzzer de tous les joueurs en mode
+        inscription : le bouton Buzz devient un bouton <strong>Rejoindre</strong>, qui ajoute le joueur aux deux
+        scoreboards à 0 pt sans attendre un vrai buzz — pratique pour enregistrer tout le monde avant la première
+        manche. Une fois cliqué, le joueur voit son bouton se griser pour confirmer l'inscription. Le bouton
+        redevient <strong>Inscriptions ouvertes</strong> (pastille teal) tant que le mode est actif, et se referme
+        automatiquement dès que tu lances la manche suivante.
+      </p>
+
+      <div class="callout">
+        <div class="callout__icon">🛡️</div>
+        <p>
+          <strong>Filet de sécurité :</strong> même sans passer par les inscriptions, un joueur qui buzze pour la
+          première fois apparaît automatiquement sur les deux scoreboards à 0 pt — impossible d'oublier quelqu'un.
+        </p>
+      </div>
+    </section>
+
     <section id="reglages-jeu">
-      <div class="section__eyebrow">08 — Réglages → Jeu</div>
+      <div class="section__eyebrow">09 — Réglages → Jeu</div>
       <h2>Régler le rythme de la partie</h2>
       <div class="table-wrap">
         <table>
@@ -740,7 +819,7 @@
     </section>
 
     <section id="deroule">
-      <div class="section__eyebrow">09 — Gameplay</div>
+      <div class="section__eyebrow">10 — Gameplay</div>
       <h2>Déroulé d'une manche</h2>
       <ol class="steps">
         <li><span><strong class="step-label">Nouvelle musique</strong> lance l'extrait sur l'enceinte, démarre le chrono et remet le classement des buzz à zéro.</span></li>
@@ -756,7 +835,7 @@
     </section>
 
     <section id="raccourcis">
-      <div class="section__eyebrow">10 — Mode animateur</div>
+      <div class="section__eyebrow">11 — Mode animateur</div>
       <h2>Raccourcis clavier</h2>
       <p>Pour piloter la manche sans viser les boutons à la souris. Automatiquement désactivés pendant la saisie d'un champ texte ou quand une fenêtre de réglages est ouverte.</p>
       <div class="table-wrap">
@@ -773,7 +852,7 @@
     </section>
 
     <section id="depannage">
-      <div class="section__eyebrow">11 — Pour finir</div>
+      <div class="section__eyebrow">12 — Pour finir</div>
       <h2>Fin de partie &amp; dépannage</h2>
       <p>
         Quand tous les morceaux ont été joués, un écran l'indique et propose de
@@ -787,7 +866,9 @@
           <tbody>
             <tr><td>« Ce compte Spotify n'est pas Premium »</td><td>Le compte connecté doit être Premium — le lecteur refuse les comptes gratuits.</td></tr>
             <tr><td>« Aucun appareil Spotify actif »</td><td>Réessaie dans quelques secondes ; vérifie qu'un appareil Spotify (l'écran animateur lui-même compte comme tel) est bien actif.</td></tr>
+            <tr><td>Erreur 403 en pleine soirée (« autorisations nécessaires… »)</td><td>Utilise <strong>Se reconnecter à Spotify</strong> dans Réglages → Admin — ça ne touche pas à la partie en cours. Si ça persiste, vérifie que ton application est ajoutée aux <em>Users</em> du Spotify Developer Dashboard (obligatoire tant que l'app est en mode développement).</td></tr>
             <tr><td>Playlists qui ne se chargent pas</td><td>Playlist éditoriale Spotify (Discover Weekly, RapCaviar…) — utilise une playlist que tu as créée ou suivie toi-même.</td></tr>
+            <tr><td>« Playlists chargées : 0 » alors qu'elles sont bien listées</td><td>Le chargement a échoué (souvent un 403 Spotify) — reconnecte-toi puis clique à nouveau sur <strong>Recharger les playlists</strong> : les morceaux déjà joués ne seront jamais rejoués, et la partie en cours n'est pas affectée par la tentative.</td></tr>
             <tr><td>Pastille « Buzzer » restée grise</td><td>Le serveur de l'app Buzzer est hors ligne ou injoignable — c'est la première chose à vérifier avant d'inviter les joueurs.</td></tr>
             <tr><td>Un joueur ne peut plus buzzer</td><td>Il a déjà buzzé sur cette manche — il pourra à nouveau buzzer dès la manche suivante.</td></tr>
           </tbody>
