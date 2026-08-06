@@ -88,7 +88,13 @@ function App() {
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
       {showSettings && (
-        <SettingsModal onClose={() => setShowSettings(false)} queue={queueWithScoreReset} settings={settings} branding={branding} />
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          queue={queueWithScoreReset}
+          settings={settings}
+          branding={branding}
+          spotify={spotifyPlayer}
+        />
       )}
       {showScores && <ScoreBoardModal onClose={() => setShowScores(false)} scores={scores} buzz={buzz} />}
       <Toast message={toast.message} onDismiss={toast.dismissToast} />

@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { clearToken, exchangeCodeForToken, getValidAccessToken, redirectToSpotifyAuthorize } from '../spotifyToken.js'
+import {
+  clearToken,
+  exchangeCodeForToken,
+  getValidAccessToken,
+  redirectToSpotifyAuthorize,
+  refreshAccessToken,
+} from '../spotifyToken.js'
 import { fetchMe } from '../services/spotify.js'
 import { getStoredVolume } from '../services/storage.js'
 
@@ -83,6 +89,24 @@ export function useSpotifyPlayer() {
   // dehors du flow d'auth normal — ramène l'animateur à l'écran "Se connecter" avec un message clair.
   const reportAuthFailure = useCallback(() => fail('invalid_token'), [fail])
 
+  // Reconnexion "douce" depuis les Réglages (Admin) : force un nouveau token puis réinitialise le
+  // lecteur SDK, sans redirection ni toucher à la queue/aux scores — pour les cas où la lecture
+  // plante en pleine soirée (ex. 403 silencieux du SDK) sans que le statut ne soit passé à 'error'.
+  // Si le refresh échoue (refresh token révoqué), on retombe sur l'écran "Se connecter" habituel.
+  const reconnect = useCallback(async () => {
+    setStatus('connecting')
+    setError(null)
+    playerRef.current?.disconnect()
+    playerRef.current = null
+    setDeviceId(null)
+    try {
+      await refreshAccessToken()
+      await initPlayer()
+    } catch (err) {
+      fail(err.code ?? 'invalid_token')
+    }
+  }, [fail, initPlayer])
+
   const togglePlay = useCallback(() => playerRef.current?.togglePlay(), [])
   const pause = useCallback(() => playerRef.current?.pause(), [])
   const setVolume = useCallback((volume) => playerRef.current?.setVolume(volume), [])
@@ -154,6 +178,7 @@ export function useSpotifyPlayer() {
     deviceId,
     connect,
     reportAuthFailure,
+    reconnect,
     togglePlay,
     pause,
     setVolume,

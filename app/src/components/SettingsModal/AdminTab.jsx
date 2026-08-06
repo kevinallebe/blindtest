@@ -10,7 +10,7 @@ import {
 import { fetchPlaylistMeta } from '../../services/spotify.js'
 import './AdminTab.css'
 
-export default function AdminTab({ queue = {}, branding }) {
+export default function AdminTab({ queue = {}, branding, spotify }) {
   const {
     stats = null,
     status: queueStatus = 'idle',
@@ -75,6 +75,8 @@ export default function AdminTab({ queue = {}, branding }) {
 
   return (
     <div className="cbt-admin-tab">
+      {spotify && <SpotifyConnectionSection spotify={spotify} />}
+
       <section>
         <h3 className="cbt-admin-tab__label">Identité du blindtest</h3>
         <form className="cbt-admin-tab__row" onSubmit={handleSaveBranding}>
@@ -177,5 +179,30 @@ function Stat({ value, label }) {
       <div className="cbt-admin-tab__stat-value">{value}</div>
       <div className="cbt-admin-tab__stat-label">{label}</div>
     </div>
+  )
+}
+
+// Epic 12 — recovery manuel pour les pannes de lecture qui ne redirigent pas vers l'écran
+// "Se connecter" toutes seules (ex. 403 silencieux du SDK Web Playback en pleine soirée) :
+// force un nouveau token + un nouveau device, sans toucher à la queue en cours ni aux scores.
+function SpotifyConnectionSection({ spotify }) {
+  const isConnecting = spotify.status === 'connecting'
+
+  return (
+    <section>
+      <h3 className="cbt-admin-tab__label">Connexion Spotify</h3>
+      <div className="cbt-admin-tab__row">
+        <button type="button" className="cbt-btn cbt-admin-tab__btn-save" onClick={spotify.reconnect} disabled={isConnecting}>
+          {isConnecting ? 'Reconnexion…' : 'Se reconnecter à Spotify'}
+        </button>
+      </div>
+      <p className="cbt-admin-tab__hint">
+        À utiliser si la lecture plante en pleine soirée (ex. erreur 403) — ne touche ni à la
+        playlist en cours ni aux scores.
+      </p>
+      {spotify.status === 'error' && spotify.error && (
+        <p className="cbt-admin-tab__error">{spotify.error.message}</p>
+      )}
+    </section>
   )
 }

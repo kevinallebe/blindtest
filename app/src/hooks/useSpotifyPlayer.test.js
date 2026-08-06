@@ -1,7 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchMe } from '../services/spotify.js'
-import { clearToken, exchangeCodeForToken, getValidAccessToken, redirectToSpotifyAuthorize } from '../spotifyToken.js'
+import {
+  clearToken,
+  exchangeCodeForToken,
+  getValidAccessToken,
+  redirectToSpotifyAuthorize,
+  refreshAccessToken,
+} from '../spotifyToken.js'
 import { useSpotifyPlayer } from './useSpotifyPlayer.js'
 
 vi.mock('../spotifyToken.js')
@@ -140,6 +146,51 @@ describe('useSpotifyPlayer', () => {
 
     expect(result.current.status).toBe('connecting')
     expect(redirectToSpotifyAuthorize).toHaveBeenCalledTimes(1)
+  })
+
+  it('reconnect() refreshes the token and re-initializes the player without redirecting', async () => {
+    getValidAccessToken.mockResolvedValue('token123')
+    refreshAccessToken.mockResolvedValue({ access_token: 'fresh-token' })
+    const instances = installFakeSpotifySdk()
+
+    const { result } = renderHook(() => useSpotifyPlayer())
+    await act(async () => flushMicrotasks())
+    act(() => instances[0].listeners.ready({ device_id: 'device1' }))
+    expect(result.current.status).toBe('ready')
+
+    await act(async () => {
+      result.current.reconnect()
+      await flushMicrotasks()
+    })
+
+    // Un 403 SDK silencieux ne bascule pas toujours 'status' en 'error' : reconnect() doit forcer
+    // un nouveau device plutôt que de réutiliser l'ancienne connexion cassée.
+    expect(instances[0].disconnect).toHaveBeenCalledTimes(1)
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1)
+    expect(redirectToSpotifyAuthorize).not.toHaveBeenCalled()
+    expect(instances).toHaveLength(2)
+
+    act(() => instances[1].listeners.ready({ device_id: 'device2' }))
+    expect(result.current.status).toBe('ready')
+    expect(result.current.deviceId).toBe('device2')
+  })
+
+  it('reconnect() falls back to the auth gate when the refresh token was revoked', async () => {
+    getValidAccessToken.mockResolvedValue('token123')
+    refreshAccessToken.mockRejectedValue(Object.assign(new Error('nope'), { code: 'invalid_token' }))
+    const instances = installFakeSpotifySdk()
+
+    const { result } = renderHook(() => useSpotifyPlayer())
+    await act(async () => flushMicrotasks())
+    act(() => instances[0].listeners.ready({ device_id: 'device1' }))
+
+    await act(async () => {
+      result.current.reconnect()
+      await flushMicrotasks()
+    })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.error.code).toBe('invalid_token')
   })
 
   it('delegates playback controls to the underlying SDK player once ready', async () => {
