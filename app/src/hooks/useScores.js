@@ -57,13 +57,14 @@ export function useScores() {
     [setOverall, setParty],
   )
 
+  // `before` est fourni par l'appelant (déjà lu depuis roundScores) plutôt que re-dérivé depuis
+  // l'intérieur du updater de setRoundScores : en StrictMode (dev), React invoque ce genre de
+  // updater deux fois pour détecter les effets de bord impurs — un appelDelta y logé aurait donc
+  // doublé les points à chaque clic (bug constaté : 1 pt "les deux" appliqué comme 2 pts).
   const applyToggle = useCallback(
-    (name, nextToggle) => {
-      setRoundScores((prev) => {
-        const before = prev[name] ?? EMPTY_TOGGLE
-        applyDelta(name, pointsFor(nextToggle) - pointsFor(before))
-        return { ...prev, [name]: nextToggle }
-      })
+    (name, before, nextToggle) => {
+      applyDelta(name, pointsFor(nextToggle) - pointsFor(before))
+      setRoundScores((prev) => ({ ...prev, [name]: nextToggle }))
     },
     [applyDelta],
   )
@@ -71,7 +72,7 @@ export function useScores() {
   const toggleArtist = useCallback(
     (name) => {
       const current = roundScores[name] ?? EMPTY_TOGGLE
-      applyToggle(name, { ...current, artist: !current.artist })
+      applyToggle(name, current, { ...current, artist: !current.artist })
     },
     [roundScores, applyToggle],
   )
@@ -79,7 +80,7 @@ export function useScores() {
   const toggleTitle = useCallback(
     (name) => {
       const current = roundScores[name] ?? EMPTY_TOGGLE
-      applyToggle(name, { ...current, title: !current.title })
+      applyToggle(name, current, { ...current, title: !current.title })
     },
     [roundScores, applyToggle],
   )
@@ -90,7 +91,7 @@ export function useScores() {
     (name) => {
       const current = roundScores[name] ?? EMPTY_TOGGLE
       const bothActive = current.artist && current.title
-      applyToggle(name, { artist: !bothActive, title: !bothActive })
+      applyToggle(name, current, { artist: !bothActive, title: !bothActive })
     },
     [roundScores, applyToggle],
   )
