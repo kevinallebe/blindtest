@@ -483,4 +483,164 @@ describe('GameScreen — playback/timer orchestration', () => {
       expect(screen.getByText(/autorisations nécessaires/)).toBeInTheDocument()
     })
   })
+
+  describe('keyboard shortcuts (mode animateur)', () => {
+    it('Space toggles play/pause during a round, same as clicking the button', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+      await act(async () => {
+        onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+        await flushMicrotasks()
+      })
+      act(() => vi.advanceTimersByTime(1000))
+      expect(screen.getByText('Pause')).toBeInTheDocument()
+
+      fireEvent.keyDown(window, { key: ' ' })
+      expect(spotifyPlayer.togglePlay).toHaveBeenCalledTimes(1)
+      expect(screen.getByText('Continuer')).toBeInTheDocument()
+    })
+
+    it('Enter launches a new track, same as clicking "Nouvelle musique"', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      await act(async () => {
+        fireEvent.keyDown(window, { key: 'Enter' })
+        await flushMicrotasks()
+      })
+
+      expect(spotifyService.playTrack).toHaveBeenCalledWith('device1', trackA.uri)
+      expect(buzz.startRound).toHaveBeenCalledTimes(1)
+    })
+
+    it('Enter does nothing while a round is still in progress (timer running)', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+      await act(async () => {
+        onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+        await flushMicrotasks()
+      })
+      act(() => vi.advanceTimersByTime(1000))
+      expect(spotifyService.playTrack).toHaveBeenCalledTimes(1)
+
+      fireEvent.keyDown(window, { key: 'Enter' })
+      expect(spotifyService.playTrack).toHaveBeenCalledTimes(1)
+    })
+
+    it('R reveals the answer, same as clicking "Révéler la réponse"', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+      await act(async () => {
+        onStateChangeHolder.current({ paused: false, track_window: { current_track: { uri: trackA.uri } } })
+        await flushMicrotasks()
+      })
+      act(() => vi.advanceTimersByTime(1000))
+
+      fireEvent.keyDown(window, { key: 'r' })
+
+      expect(spotifyPlayer.pause).toHaveBeenCalled()
+      expect(screen.getByText('X — A')).toBeInTheDocument()
+    })
+
+    it('B resets the buzz list at any time, even before the first round starts', () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      fireEvent.keyDown(window, { key: 'b' })
+      expect(buzz.startRound).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores shortcuts while the animateur is typing in a text field', () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <>
+          <input aria-label="Champ de saisie factice" />
+          <GameScreen
+            queue={queue}
+            spotifyPlayer={spotifyPlayer}
+            buzz={buzz}
+            settings={buildSettings()}
+            showToast={showToast}
+          />
+        </>,
+      )
+
+      fireEvent.keyDown(screen.getByLabelText('Champ de saisie factice'), { key: 'b' })
+
+      expect(buzz.startRound).not.toHaveBeenCalled()
+    })
+
+    it('disables every shortcut while a modal is open (overlayOpen)', () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen
+          queue={queue}
+          spotifyPlayer={spotifyPlayer}
+          buzz={buzz}
+          settings={buildSettings()}
+          showToast={showToast}
+          overlayOpen
+        />,
+      )
+
+      fireEvent.keyDown(window, { key: 'b' })
+      fireEvent.keyDown(window, { key: 'Enter' })
+
+      expect(buzz.startRound).not.toHaveBeenCalled()
+      expect(spotifyService.playTrack).not.toHaveBeenCalled()
+    })
+  })
 })

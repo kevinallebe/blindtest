@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { addPlaylist, getPlaylists, removePlaylist } from './adminConfig.js'
+import {
+  addPlaylist,
+  getBlindtestInitials,
+  getBlindtestName,
+  getPlaylists,
+  removePlaylist,
+  setBlindtestInitials,
+  setBlindtestName,
+} from './adminConfig.js'
 
 const VALID_URL_A = 'https://open.spotify.com/playlist/5eSughP8saBliiTFVGnxEO?si=abc'
 const VALID_URL_B = 'https://open.spotify.com/playlist/7pKfx3Bq9m1TzYh2LwNcXe'
@@ -36,6 +44,35 @@ describe('addPlaylist', () => {
   it('propagates the parser error on an invalid link', () => {
     expect(() => addPlaylist('not a url')).toThrow('Lien de playlist Spotify invalide')
     expect(getPlaylists()).toEqual([])
+  })
+})
+
+describe('blindtest name/initials', () => {
+  it('defaults to "Blindtest"/"BT" when nothing is stored', () => {
+    expect(getBlindtestName()).toBe('Blindtest')
+    expect(getBlindtestInitials()).toBe('BT')
+  })
+
+  it('round-trips a custom name', () => {
+    setBlindtestName('  Soirée Kev & Oli  ')
+    expect(getBlindtestName()).toBe('Soirée Kev & Oli')
+  })
+
+  it('falls back to the default when the name is cleared', () => {
+    setBlindtestName('Custom')
+    setBlindtestName('   ')
+    expect(getBlindtestName()).toBe('Blindtest')
+  })
+
+  it('normalizes initials to uppercase and truncates to 2 characters', () => {
+    setBlindtestInitials('kev')
+    expect(getBlindtestInitials()).toBe('KE')
+  })
+
+  it('falls back to the default when the initials are cleared', () => {
+    setBlindtestInitials('OK')
+    setBlindtestInitials('  ')
+    expect(getBlindtestInitials()).toBe('BT')
   })
 })
 

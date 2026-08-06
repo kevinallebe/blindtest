@@ -8,6 +8,7 @@ import SettingsModal from './components/SettingsModal/SettingsModal.jsx'
 import Timer from './components/Timer.jsx'
 import Toast from './components/Toast.jsx'
 import TrackInfo from './components/TrackInfo.jsx'
+import { useBrandingSettings } from './hooks/useBrandingSettings.js'
 import { useBuzzSocket } from './hooks/useBuzzSocket.js'
 import { useGameSettings } from './hooks/useGameSettings.js'
 import { useQueue } from './hooks/useQueue.js'
@@ -16,12 +17,21 @@ import { useTimer } from './hooks/useTimer.js'
 import { useToast } from './hooks/useToast.js'
 import { playTrack } from './services/spotify.js'
 
+// Ignore les raccourcis clavier quand l'animateur est en train de saisir du texte (ex. un ID de
+// playlist dans Réglages > Admin), sans quoi "Entrée"/"R"/"B" interféreraient avec la saisie.
+function isTypingTarget(target) {
+  if (!target) return false
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable
+}
+
 function App() {
   const spotifyPlayer = useSpotifyPlayer()
   const { status, error, connect } = spotifyPlayer
   const queue = useQueue()
   const buzz = useBuzzSocket()
   const settings = useGameSettings()
+  const branding = useBrandingSettings()
   const toast = useToast()
   const [showInvite, setShowInvite] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -33,6 +43,8 @@ function App() {
         buzzerConnected={buzz.connected}
         onInvite={() => setShowInvite(true)}
         onSettings={() => setShowSettings(true)}
+        title={branding.name}
+        initials={branding.initials}
       />
       <main className="cbt-placeholder">
         <SpotifyAuthGate
@@ -44,18 +56,30 @@ function App() {
           buzz={buzz}
           settings={settings}
           showToast={toast.showToast}
+          overlayOpen={showInvite || showSettings}
         />
       </main>
       {showInvite && <QRCodeInvite onClose={() => setShowInvite(false)} />}
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} queue={queue} settings={settings} />}
+      {showSettings && (
+        <SettingsModal onClose={() => setShowSettings(false)} queue={queue} settings={settings} branding={branding} />
+      )}
       <Toast message={toast.message} onDismiss={toast.dismissToast} />
     </>
   )
 }
 
-function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings, showToast }) {
+function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz, settings, showToast, overlayOpen }) {
   if (status === 'ready') {
-    return <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={settings} showToast={showToast} />
+    return (
+      <GameScreen
+        queue={queue}
+        spotifyPlayer={spotifyPlayer}
+        buzz={buzz}
+        settings={settings}
+        showToast={showToast}
+        overlayOpen={overlayOpen}
+      />
+    )
   }
 
   if (status === 'connecting') {
@@ -89,7 +113,7 @@ function SpotifyAuthGate({ status, error, onConnect, queue, spotifyPlayer, buzz,
 
 // UI transitoire (Phases 5-6) — le reste de l'écran (Session/Buzz) arrive Phases 7-9.
 // Exporté (nommé) pour être testable isolément de useQueue/useSpotifyPlayer.
-export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) {
+export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast, overlayOpen = false }) {
   const {
     queue: tracks,
     currentIndex = 0,
@@ -116,6 +140,11 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
   // Après une révélation, la lecture est en pause par défaut mais reste contrôlable : certains
   // groupes veulent continuer à écouter le morceau une fois la réponse annoncée.
   const [isRevealedPlaying, setIsRevealedPlaying] = useState(false)
+
+  const isRevealed = roundStage === 'revealed'
+  const canPlayNext = !timer.isRunning && !isFinished
+  const showPauseToggle = roundStage === 'playing' || roundStage === 'paused' || roundStage === 'revealed'
+  const canReveal = roundStage === 'playing' || roundStage === 'paused'
 
   // Dès qu'un joueur buzze pendant une manche en cours, on coupe le son pour que tout le monde
   // entende la réponse annoncée — ne se déclenche qu'une fois par manche (roundStage quitte
@@ -232,6 +261,36 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
     setIsRevealedPlaying((wasPlaying) => !wasPlaying)
   }
 
+  // Mode animateur : raccourcis clavier pour ne pas devoir viser les boutons à la souris pendant
+  // une soirée. Pas de tableau de dépendances : les gestionnaires ci-dessus sont redéfinis à
+  // chaque rendu et doivent toujours capturer le roundStage/isRevealed le plus récent.
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (overlayOpen || isTypingTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return
+
+      if (event.key === ' ' || event.code === 'Space') {
+        if (!showPauseToggle) return
+        event.preventDefault()
+        if (isRevealed) handleToggleRevealedPlayback()
+        else handleTogglePause()
+      } else if (event.key === 'Enter') {
+        if (!canPlayNext) return
+        event.preventDefault()
+        handlePlayNext()
+      } else if (event.key === 'r' || event.key === 'R') {
+        if (!canReveal) return
+        event.preventDefault()
+        handleReveal()
+      } else if (event.key === 'b' || event.key === 'B') {
+        event.preventDefault()
+        buzz.startRound()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  })
+
   if (tracks.length === 0) {
     return (
       <div className="cbt-auth-gate">
@@ -268,8 +327,6 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
     )
   }
 
-  const isRevealed = roundStage === 'revealed'
-
   return (
     <div className="cbt-game-layout">
       <SessionStats stats={queueStats} totalTracks={tracks.length} currentIndex={currentIndex} settings={settings} />
@@ -296,7 +353,7 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, showToast }) 
             onPlayNext={handlePlayNext}
             onTogglePause={isRevealed ? handleToggleRevealedPlayback : handleTogglePause}
             onReveal={handleReveal}
-            canPlayNext={!timer.isRunning && !isFinished}
+            canPlayNext={canPlayNext}
             roundStage={roundStage}
             isPaused={isRevealed ? !isRevealedPlaying : roundStage === 'paused'}
           />

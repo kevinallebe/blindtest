@@ -8,7 +8,7 @@ const TABS = [
   { id: 'admin', label: 'Admin' },
 ]
 
-export default function SettingsModal({ onClose, queue, settings }) {
+export default function SettingsModal({ onClose, queue, settings, branding }) {
   const [activeTab, setActiveTab] = useState('admin')
 
   return (
@@ -40,7 +40,11 @@ export default function SettingsModal({ onClose, queue, settings }) {
         </aside>
 
         <div className="cbt-settings-content">
-          {activeTab === 'admin' ? <AdminTab queue={queue} /> : <GameSettingsTab settings={settings} />}
+          {activeTab === 'admin' ? (
+            <AdminTab queue={queue} branding={branding} />
+          ) : (
+            <GameSettingsTab settings={settings} />
+          )}
         </div>
       </div>
     </div>

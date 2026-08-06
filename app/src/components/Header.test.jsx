@@ -15,6 +15,16 @@ describe('Header', () => {
     expect(screen.getByText('Buzzer connecté')).toBeInTheDocument()
   })
 
+  it('shows "Blindtest"/"BT" by default and a custom title/initials when provided', () => {
+    const { rerender } = render(<Header />)
+    expect(screen.getByText('Blindtest')).toBeInTheDocument()
+    expect(screen.getByText('BT')).toBeInTheDocument()
+
+    rerender(<Header title="Soirée Kev & Oli" initials="KO" />)
+    expect(screen.getByText('Soirée Kev & Oli')).toBeInTheDocument()
+    expect(screen.getByText('KO')).toBeInTheDocument()
+  })
+
   it('wires the Inviter/Réglages buttons to their callbacks', () => {
     const onInvite = vi.fn()
     const onSettings = vi.fn()

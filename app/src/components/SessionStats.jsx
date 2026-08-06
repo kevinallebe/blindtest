@@ -33,6 +33,7 @@ export default function SessionStats({ stats, totalTracks, currentIndex, setting
         <div className="cbt-session-stats__title">Réglages actifs</div>
         <div className="cbt-session-stats__rows">
           <StatRow label="Durée du timer" value={`${settings.timerDuration} s`} />
+          <StatRow label="Timer de réponse" value={`${settings.answerTimerDuration} s`} />
           <StatRow label="Volume" value={`${settings.volume}%`} />
           <StatRow label="Révélation" value={REVEAL_MODE_LABELS[settings.revealMode] ?? 'Manuelle'} />
         </div>

@@ -10,7 +10,7 @@ import {
 import { fetchPlaylistMeta } from '../../services/spotify.js'
 import './AdminTab.css'
 
-export default function AdminTab({ queue = {} }) {
+export default function AdminTab({ queue = {}, branding }) {
   const {
     stats = null,
     status: queueStatus = 'idle',
@@ -20,6 +20,10 @@ export default function AdminTab({ queue = {} }) {
   } = queue
   const [clientId, setClientId] = useState(() => getSpotifyClientId())
   const [savedClientId, setSavedClientId] = useState(false)
+
+  const [nameDraft, setNameDraft] = useState(() => branding.name)
+  const [initialsDraft, setInitialsDraft] = useState(() => branding.initials)
+  const [savedBranding, setSavedBranding] = useState(false)
 
   const [playlists, setPlaylists] = useState(() => getPlaylists())
   const [playlistUrl, setPlaylistUrl] = useState('')
@@ -46,6 +50,14 @@ export default function AdminTab({ queue = {} }) {
     setTimeout(() => setSavedClientId(false), 2000)
   }
 
+  function handleSaveBranding(event) {
+    event.preventDefault()
+    setNameDraft(branding.setName(nameDraft))
+    setInitialsDraft(branding.setInitials(initialsDraft))
+    setSavedBranding(true)
+    setTimeout(() => setSavedBranding(false), 2000)
+  }
+
   function handleAddPlaylist(event) {
     event.preventDefault()
     try {
@@ -63,6 +75,29 @@ export default function AdminTab({ queue = {} }) {
 
   return (
     <div className="cbt-admin-tab">
+      <section>
+        <h3 className="cbt-admin-tab__label">Identité du blindtest</h3>
+        <form className="cbt-admin-tab__row" onSubmit={handleSaveBranding}>
+          <input
+            className="cbt-admin-tab__input"
+            value={nameDraft}
+            onChange={(event) => setNameDraft(event.target.value)}
+            placeholder="Nom du blindtest"
+          />
+          <input
+            className="cbt-admin-tab__input cbt-admin-tab__input--initials"
+            value={initialsDraft}
+            onChange={(event) => setInitialsDraft(event.target.value)}
+            placeholder="Initiales"
+            maxLength={2}
+          />
+          <button type="submit" className="cbt-btn cbt-admin-tab__btn-save">
+            {savedBranding ? 'Enregistré ✓' : 'Enregistrer'}
+          </button>
+        </form>
+        <p className="cbt-admin-tab__hint">Affichés dans l'en-tête, à côté du logo.</p>
+      </section>
+
       <section>
         <h3 className="cbt-admin-tab__label">Client ID Spotify</h3>
         <form className="cbt-admin-tab__row" onSubmit={handleSaveClientId}>

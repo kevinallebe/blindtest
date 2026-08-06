@@ -5,15 +5,17 @@ export default function Header({
   buzzerConnected = false,
   onInvite,
   onSettings,
+  title = 'Blindtest',
+  initials = 'BT',
 }) {
   return (
     <header className="cbt-header">
       <div className="cbt-header__brand">
         <div className="cbt-header__logo">
-          <span>OK</span>
+          <span>{initials}</span>
         </div>
         <div>
-          <div className="cbt-header__title">Oli &amp; Kev Blindtest</div>
+          <div className="cbt-header__title">{title}</div>
           <div className="cbt-header__subtitle">Soirée blindtest &middot; joué depuis Spotify</div>
         </div>
       </div>

@@ -39,6 +39,13 @@
   color: var(--color-text-muted);
 }
 
+.cbt-admin-tab__input--initials {
+  flex: 0 0 100px;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
 .cbt-admin-tab__btn-save,
 .cbt-admin-tab__btn-add {
   font-size: 15px;

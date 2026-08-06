@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import SessionStats from './SessionStats.jsx'
 
 function buildSettings(overrides = {}) {
-  return { timerDuration: 20, volume: 70, revealMode: 'manual', ...overrides }
+  return { timerDuration: 20, volume: 70, revealMode: 'manual', answerTimerDuration: 5, ...overrides }
 }
 
 describe('SessionStats', () => {
@@ -48,11 +48,12 @@ describe('SessionStats', () => {
         stats={{ playlistCount: 4, tracksLoaded: 182, duplicatesRemoved: 9 }}
         totalTracks={182}
         currentIndex={0}
-        settings={buildSettings({ timerDuration: 20, volume: 70, revealMode: 'auto' })}
+        settings={buildSettings({ timerDuration: 20, volume: 70, revealMode: 'auto', answerTimerDuration: 8 })}
       />,
     )
 
     expect(screen.getByText('20 s')).toBeInTheDocument()
+    expect(screen.getByText('8 s')).toBeInTheDocument()
     expect(screen.getByText('70%')).toBeInTheDocument()
     expect(screen.getByText('Automatique')).toBeInTheDocument()
   })
