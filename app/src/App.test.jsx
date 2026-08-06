@@ -513,6 +513,35 @@ describe('GameScreen — playback/timer orchestration', () => {
 
       expect(screen.getByText(/autorisations nécessaires/)).toBeInTheDocument()
     })
+
+    it('stays silent when only the SDK state confirmation times out — the track is already playing', async () => {
+      const onStateChangeHolder = { current: null }
+      const queue = buildQueue()
+      const spotifyPlayer = buildSpotifyPlayer(onStateChangeHolder)
+      const buzz = buildBuzz()
+
+      render(
+        <GameScreen queue={queue} spotifyPlayer={spotifyPlayer} buzz={buzz} settings={buildSettings()} showToast={showToast} />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Nouvelle musique'))
+        await flushMicrotasks()
+      })
+      // playTrack a déjà réussi à ce stade (advance/startRound déjà appelés) — seule la
+      // confirmation player_state_changed du SDK ne vient jamais.
+      expect(queue.advance).toHaveBeenCalledTimes(1)
+      expect(buzz.startRound).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        vi.advanceTimersByTime(8000)
+        await flushMicrotasks()
+      })
+
+      expect(screen.queryByText(/La lecture a échoué/)).not.toBeInTheDocument()
+      expect(showToast).not.toHaveBeenCalled()
+      expect(spotifyPlayer.reportAuthFailure).not.toHaveBeenCalled()
+    })
   })
 
   describe('keyboard shortcuts (mode animateur)', () => {

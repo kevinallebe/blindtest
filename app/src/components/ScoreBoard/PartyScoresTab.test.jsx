@@ -205,6 +205,44 @@ describe('PartyScoresTab', () => {
     expect(screen.queryByText('Ouvrir les inscriptions')).not.toBeInTheDocument()
   })
 
+  it('orders individual players by points descending, regardless of insertion order', () => {
+    const scores = buildScores({
+      party: {
+        players: [
+          { name: 'Marie', points: 0.5 },
+          { name: 'Tom', points: 2 },
+          { name: 'Léa', points: 1 },
+        ],
+        teams: [],
+      },
+    })
+    render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+    const names = screen.getAllByText(/Marie|Tom|Léa/).map((el) => el.textContent)
+    expect(names).toEqual(['Tom', 'Léa', 'Marie'])
+  })
+
+  it('orders team cards by total points descending, regardless of insertion order', () => {
+    const scores = buildScores({
+      party: {
+        players: [
+          { name: 'Marie', points: 0.5 },
+          { name: 'Tom', points: 0.5 },
+          { name: 'Léa', points: 3 },
+          { name: 'Noah', points: 3 },
+        ],
+        teams: [
+          { id: 'low', memberNames: ['Marie', 'Tom'] },
+          { id: 'high', memberNames: ['Léa', 'Noah'] },
+        ],
+      },
+    })
+    render(<PartyScoresTab scores={scores} buzz={{}} />)
+
+    const cards = screen.getAllByText(/&/).map((el) => el.textContent)
+    expect(cards).toEqual(['Léa & Noah', 'Marie & Tom'])
+  })
+
   describe('drag & drop team formation (US-15.1, screen 03)', () => {
     it('merges two individuals when one is dropped on the other, with ghost/target styling mid-drag', () => {
       const scores = buildScores({

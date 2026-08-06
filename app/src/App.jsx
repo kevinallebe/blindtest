@@ -276,6 +276,14 @@ export function GameScreen({ queue, spotifyPlayer, buzz, settings, scores = NOOP
         })
       }, 1000)
     } catch (err) {
+      // playback_state_timeout ne vient que de waitForPlaybackState, appelé après que playTrack()
+      // a déjà réussi (advance/startRound/resetRoundScores sont déjà passés à ce stade) — c'est
+      // juste la confirmation du SDK qui traîne, la musique joue réellement. Ne pas alerter les
+      // joueurs pour rien.
+      if (err.message === 'playback_state_timeout') {
+        console.warn('[GameScreen] playback state confirmation timed out (lecture probablement OK)', err)
+        return
+      }
       console.error('[GameScreen] playTrack failed', err)
       // Epic 12 — distingue les cas plutôt qu'un message générique unique.
       if (err.code === 'reauth_required') {

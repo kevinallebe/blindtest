@@ -5,11 +5,21 @@ import './PartyScoresTab.css'
 
 // Epic 14/15/16 — vue individuelle + équipes de la partie en cours (screens 02/03). US-15.1 :
 // glisser un joueur individuel sur un autre joueur (ou une équipe existante) fusionne les deux.
+function getTeamTotal(team, players) {
+  return team.memberNames.reduce((sum, name) => sum + (players.find((player) => player.name === name)?.points ?? 0), 0)
+}
+
 export default function PartyScoresTab({ scores, buzz }) {
   const { party } = scores
   const teamedNames = new Set(party.teams.flatMap((team) => team.memberNames))
   const individuals = party.players.filter((player) => !teamedNames.has(player.name))
   const isRegistrationOpen = buzz?.mode === 'join'
+
+  // Le drag & drop réordonne les tableaux sous-jacents au fil des fusions — on retrie toujours
+  // à l'affichage plutôt que de faire confiance à l'ordre d'insertion, pour que le classement
+  // reste par score décroissant même après une manipulation d'équipes.
+  const sortedTeams = [...party.teams].sort((a, b) => getTeamTotal(b, party.players) - getTeamTotal(a, party.players))
+  const sortedIndividuals = [...individuals].sort((a, b) => b.points - a.points)
 
   const [draggingName, setDraggingName] = useState(null)
   const [dropTargetKey, setDropTargetKey] = useState(null)
@@ -101,7 +111,7 @@ export default function PartyScoresTab({ scores, buzz }) {
       </div>
 
       <div className="cbt-party-tab__list">
-        {party.teams.map((team) => (
+        {sortedTeams.map((team) => (
           <TeamCard
             key={team.id}
             team={team}
@@ -114,7 +124,7 @@ export default function PartyScoresTab({ scores, buzz }) {
             onDrop={handleDropOnTeam(team.id)}
           />
         ))}
-        {individuals.map((player) => (
+        {sortedIndividuals.map((player) => (
           <div
             key={player.name}
             draggable
